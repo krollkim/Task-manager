@@ -7,7 +7,7 @@ const password = config.get("DB_PASSWORD");
 const clusterUrl = "cluster0.mlv7t.mongodb.net";
 const dbName = "task_manager";
 
-const uri = `mongodb+srv://${userName}:${password}@${clusterUrl}/${dbName}?retryWrites=true&w=majority`;
+export const uri = `mongodb+srv://${userName}:${password}@${clusterUrl}/${dbName}?retryWrites=true&w=majority`;
 
 mongoose
   .connect(uri)
@@ -15,3 +15,7 @@ mongoose
   .catch((error) =>
     console.log(chalk.redBright.bold(`Could not connect to MongoDB: ${error}`))
   );
+
+  console.log(`Connecting with user: ${userName} and password: ${password}`);
+
+  module.exports = mongoose;
