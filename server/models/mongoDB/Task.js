@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const taskSchema = new mongoose.Schema({
     id: {
-        type: Number,
+        type: String,
         required: true
     },
     task: { 

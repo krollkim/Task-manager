@@ -2,7 +2,7 @@ const chalk = require("chalk");
 
 const handleError = (res, status, message = "") => {
   console.log(chalk.redBright(message));
-  return res.status(status).send(message);
+  return res.sendCode(status).send(message);
 };
 
 const handleBadRequest = async (validator, error) => {

@@ -1,6 +1,5 @@
 const Task = require("./mongoDB/Task");
 const { handleError } = require('../utils/handleErrors');
-const { randomUUID } = require("crypto");
 const uuid = require('uuid');
 
 const DB = process.env.DB || "MONGODB";
@@ -39,15 +38,30 @@ const createTask = async (taskData) => {
   if (DB === "MONGODB") {
     try {
       taskData.id = uuid.v4();
-      let task = new Task(taskData);  // Create a new Task instance
-      task = await task.save();  // Save the task to MongoDB
-      return Promise.resolve(task);  // Return the saved task
+      let task = new Task(taskData);
+      task = await task.save();
+      return Promise.resolve(task);
     } catch (error) {
       error.status = 400;
-      return handleError(error);  // Use handleError for consistent error handling
+      return handleError(error);
     }
   }
   return Promise.resolve("create task not in mongodb");
 };
 
-module.exports = { getTasks, getTask, createTask };  // Export the functions for use in your router
+// Function to delete task by id
+const deleteTask = async (taskId) => {
+  if (DB === "MONGODB") {
+      try {
+          const deletedTask = await Task.findByIdAndDelete(taskId);
+          return deletedTask;
+      } catch (error) {
+          error.status = 400;
+          return handleError(error);
+      }
+  }
+  return "delete task not in mongodb";
+};
+
+
+module.exports = { getTasks, getTask, createTask, deleteTask };
