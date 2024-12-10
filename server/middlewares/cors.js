@@ -1,6 +1,6 @@
-const express = require("express");
-const app = express();
-const cors = require("cors");
+import express from "express";
+import app from express();
+import cors from "cors";
 
 app.use(
   cors({
@@ -9,4 +9,4 @@ app.use(
   })
 );
 
-module.exports = app;
+export default app;

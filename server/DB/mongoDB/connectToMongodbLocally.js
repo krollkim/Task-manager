@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const chalk = require("chalk");
+import mongoose from "mongoose";
+import chalk from "chalk";
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/task_manager")
@@ -8,4 +8,4 @@ mongoose
     console.log(chalk.redBright.bold(`could not connect to mongoDb: ${error}`))
   );
 
-  module.exports = mongoose;
+  export default mongoose;

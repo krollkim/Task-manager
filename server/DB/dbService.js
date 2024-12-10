@@ -1,15 +1,13 @@
-const config = require("config");
+import config from "config";
 
 const ENVIRONMENT = config.get("NODE_ENV");
 
-const connectToDb = () => {
+export const connectToDb = async () => {
   if (ENVIRONMENT === "development") {
-    require("./mongoDB/connectToMongodbLocally");
+    await import("./mongoDB/connectToMongodbLocally.js");
   } else if (ENVIRONMENT === "production") {
-    require("./mongoDB/connectToAtlas");
+    await import("./mongoDB/connectToAtlas.js");
   } else {
     console.log("No valid environment set for database connection");
   }
 };
-
-module.exports = connectToDb;

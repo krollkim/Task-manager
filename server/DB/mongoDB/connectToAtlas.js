@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const chalk = require("chalk");
-const config = require("config");
+import mongoose from "mongoose";
+import chalk from "chalk";
+import config from "config";
 
 const userName = config.get("DB_NAME");
 const password = config.get("DB_PASSWORD");
@@ -18,4 +18,4 @@ mongoose
 
   console.log(`Connecting with user: ${userName} and password: ${password}`);
 
-  module.exports = mongoose;
+ export default mongoose;

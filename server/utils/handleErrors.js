@@ -1,22 +1,30 @@
-const chalk = require("chalk");
+import chalk from "chalk";
 
-const handleError = (res, status, message = "") => {
+
+export const handleError = (res, status, message = "") => {
+  if (!res || typeof res.status !== "function") {
+    console.error("Invalid Response object passed to handleError.");
+    return; // Exit early to prevent further errors.
+  }
+  if (res.headersSent) {
+    console.error("Cannot set headers after they are sent to the client.");
+    return; // Prevent duplicate response attempts.
+  }
   console.log(chalk.redBright(message));
-  return res.sendCode(status).send(message);
+  return res.status(status).send(message);
 };
 
-const handleBadRequest = async (validator, error) => {
+
+export const handleBadRequest = async (validator, error) => {
   const errorMessage = `${validator} Error: ${error.message}`;
   error.message = errorMessage;
   error.status = error.status || 400;
   return Promise.reject(error);
 };
 
-const handleJoiError = async error => {
-  const joiError = new Error(error.details[0].message);
-  return handleBadRequest("Joi", joiError);
-};
+// const handleJoiError = async error => {
+//   const joiError = new Error(error.details[0].message);
+//   return handleBadRequest("Joi", joiError);
+// };
 
-exports.handleError = handleError;
-exports.handleBadRequest = handleBadRequest;
-exports.handleJoiError = handleJoiError;
+// exports.handleJoiError = handleJoiError;

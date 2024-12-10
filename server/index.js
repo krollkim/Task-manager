@@ -1,8 +1,8 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
 // const chalk = require("chalk");
-const taskRouter = require('./routes/taskRouter');
-const connectToDb = require('./DB/dbService');
+import taskRouter from './routes/taskRouter.js';
+import {connectToDb} from './DB/dbService.js';
 
 const app = express();
 app.use(cors());

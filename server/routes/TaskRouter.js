@@ -1,6 +1,9 @@
-const express = require('express');
-const { getTasks, createTask, getTask, deleteTask } = require('../models/TaskAccessDataService');
-const { handleError } = require('../utils/handleErrors');
+import express from 'express';
+import { getTasks, createTask, getTask, deleteTask, editTask } from '../models/TaskAccessDataService.js';
+import { handleError } from '../utils/handleErrors.js';
+import Task from '../models/mongoDB/Task.js';
+
+
 const router = express.Router();
 
 // Route to get all tasks
@@ -28,7 +31,7 @@ router.get('/:id', async (req, res) => {
 // Route to create a new task
 router.post('/', async (req, res) => {
     try {
-        const { task } = req.body;
+        const task = req.body;
 
         if (!task || typeof task.task !== 'string' || task.task.trim() === '') {
             return handleError(res, 400, 'Task is required and must be a non-empty string.');
@@ -43,21 +46,40 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Route to delete task by id
-router.delete('/:id', async (req, res) => {
+// Route to edit a new task
+router.patch('/:id', async (req, res) => {
     try {
         const id = req.params.id;
+        const updatedData = req.body;
+        console.log("PATCH request received with id:", id, "and data:", updatedData);
+        const editedTask = await editTask(id, updatedData);
 
-        const deletedTask = await deleteTask(id);
-        if (!deletedTask) {
-            return res.status(404).json({ message: 'Task not found' });
-        }
-        return res.send({ message: 'Task deleted successfully', task: deletedTask });
+        return res.status(200).json(editedTask);
     } catch (error) {
         return handleError(res, error.status || 500, error.message);
     }
 });
 
+// Route to delete task by id
+router.delete("/:id", async (req, res) => {
+    try {
+      const id = req.params.id;  
+      if (!id) {
+        return handleError(res, 400, "Task ID is required");
+      }
+  
+      const deletedTask = await deleteTask(id);
+      return res.status(200).json({
+        message: "Task deleted successfully",
+        task: deletedTask,
+      });
+    } catch (error) {
+      console.error("Error in DELETE route:", error);
+      return handleError(res, error.status || 500, error.message);
+    }
+  });
+  
 
 
-module.exports = router;
+
+export default router;
