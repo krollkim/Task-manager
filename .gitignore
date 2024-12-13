@@ -1,13 +1,16 @@
-# Dependency directories
+# Node modules
 node_modules/
+
+# Build output
+dist/
+build/
 
 # Logs
 *.log
 
-# Build directories
-dist/
-build/
+# IDE-specific files
+.vscode/
+.idea/
 
-# System files
-.DS_Store
-Thumbs.db
+# Temporary files
+*.tmp
