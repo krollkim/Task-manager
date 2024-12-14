@@ -15,7 +15,7 @@
       "isolatedModules": true,
       "noEmit": true,
       "jsx": "react-jsx",
-      "types": ["estree"]
+      "types": ["estree", "node", "react"]
     },
     "include": ["src"]
   }
