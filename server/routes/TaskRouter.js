@@ -37,7 +37,11 @@ router.post('/', async (req, res) => {
             return handleError(res, 400, 'Task is required and must be a non-empty string.');
         }
 
-        const taskData = { task: task.task.trim() };
+        const taskData = { 
+            task: task.task.trim(),
+            description: task.description || '',
+            status: task.status || 'todo'
+        };
 
         const newTask = await createTask(taskData);
         return res.send(newTask);

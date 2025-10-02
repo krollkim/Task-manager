@@ -1,7 +1,7 @@
 // client/src/services/TaskServices.js
 import axios from "axios";
 
-const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5003";
 
 // Fetch all tasks
 export const getTasks = async () => {

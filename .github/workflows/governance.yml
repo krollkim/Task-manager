@@ -1,0 +1,14 @@
+name: Project Governance
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  governance:
+    uses: krollkim/governance-workflows/.github/workflows/governance.yml@main
+    with:
+      agents_config_path: 'agents.yaml'
+      enable_ai_execution: true      # 🆕 This enables actual AI agents
+      ai_execution_mode: 'simulate'  # 🆕 Safe mode for testing
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

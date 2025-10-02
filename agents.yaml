@@ -1,0 +1,93 @@
+# Machine‑readable agent registry + pattern switch
+active_pattern: orchestrator
+
+limits:
+  max_files_changed: 30
+  max_lines_changed: 800
+  context_tokens_soft_cap: 60000
+  # Migration PRs can be larger - use 'migration' label to bypass strict limits
+  allow_overrides:
+    labels:
+      - migration
+  # Explicit override rules for migration
+  overrides:
+    migration:
+      max_files_changed: 9999
+      max_lines_changed: 999999
+
+routing:
+  heuristics:
+    - if: "touches client/ or .tsx or .css or components or tailwind"
+      to: fe
+    - if: "touches server/ or controllers or routes or middlewares"
+      to: be
+    - if: "touches server/DB or server/models/mongoDB or mongoose"
+      to: db
+    - if: "touches .github/workflows or package.json or config"
+      to: ops
+    - if: "only tests/docs changed"
+      to: test
+
+agents:
+  lead_agent:
+    id: lead_agent
+    name: Claude
+    role: Senior Lead Developer
+    permissions: [read, propose_diff, open_pr, comment, request_reviews]
+    owners: [kim]
+    tools: [ide_edit, terminal_readonly, run_tests, linter]
+
+  fe:
+    name: Frontend Expert
+    domains: [react, typescript, mui, tailwindcss, routing]
+    rules:
+      - maintain component structure in client/src/components/
+      - use Material-UI and TailwindCSS for styling
+      - follow React Router patterns for navigation
+
+  be:
+    name: Backend Expert
+    domains: [node, express, typescript, jwt, bcrypt, cors]
+    rules:
+      - maintain server structure: controllers/, routes/, middlewares/
+      - use existing auth middleware and error handling patterns
+      - follow RESTful API conventions
+
+  db:
+    name: Database Expert
+    domains: [mongodb, mongoose, atlas, schema, indexing]
+    rules:
+      - work with Mongoose models in server/models/mongoDB/
+      - maintain Atlas and local MongoDB connections
+      - follow existing schema patterns for User and Task models
+
+  ops:
+    name: DevOps Expert
+    domains: [npm, build, deployment, ci_cd, env_config]
+    rules:
+      - manage package.json dependencies and scripts
+      - handle environment variables and config files
+      - maintain GitHub Actions workflows
+
+  test:
+    name: Test Agent
+    domains: [jest, react_testing_library, api_testing]
+    rules:
+      - use Jest and React Testing Library for frontend tests
+      - test API endpoints and auth flows
+      - maintain test coverage
+
+patterns:
+  single_agent:
+    description: single orchestrator does all work
+  lead_specialists:
+    description: lead delegates to specialists and reviews
+  peer_to_peer:
+    description: specialists can initiate PRs & request mutual reviews
+  pipeline:
+    stages: [spec, codegen, test, doc]
+  swarm:
+    events:
+      - name: nightly_maintenance
+        actions: [lint_fix, dep_bump, typecheck]
+        branch: chore/bot/maintenance

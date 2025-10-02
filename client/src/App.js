@@ -1,11 +1,11 @@
 import './App.css';
-import Layout from './layout/Layout';
+import './dashboard.css';
+import AppRouter from './components/AppRouter';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header"></header>
-      <Layout />
+      <AppRouter />
     </div>
   );
 }

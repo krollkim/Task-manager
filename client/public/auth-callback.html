@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Auth Callback</title>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Authenticating...</h2>
+        <p>Please wait while we complete your login.</p>
+    </div>
+
+    <script>
+        // Parse the hash fragment for tokens
+        function parseHash() {
+            const hash = window.location.hash.substring(1);
+            const params = {};
+            hash.split('&').forEach(part => {
+                const [key, value] = part.split('=');
+                if (key && value) {
+                    params[key] = decodeURIComponent(value);
+                }
+            });
+            return params;
+        }
+
+        // Handle the OAuth response
+        try {
+            const params = parseHash();
+            console.log('OAuth params:', params);
+
+            if (params.id_token) {
+                // Success - send token to parent window
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_SUCCESS',
+                    token: params.id_token,
+                    access_token: params.access_token
+                }, window.location.origin);
+                
+                window.close();
+            } else if (params.error) {
+                // Error - send error to parent window
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_ERROR',
+                    error: params.error + ': ' + (params.error_description || 'Unknown error')
+                }, window.location.origin);
+                
+                window.close();
+            } else {
+                // No token found
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_ERROR',
+                    error: 'No authentication token received'
+                }, window.location.origin);
+                
+                window.close();
+            }
+        } catch (error) {
+            console.error('Callback error:', error);
+            window.opener.postMessage({
+                type: 'GOOGLE_AUTH_ERROR',
+                error: 'Callback processing failed: ' + error.message
+            }, window.location.origin);
+            
+            window.close();
+        }
+    </script>
+</body>
+</html> 

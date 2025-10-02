@@ -1,0 +1,157 @@
+/* Pro Mix UI Theme Styles */
+
+/* Sidebar/Header Gradient */
+.pro-sidebar-gradient {
+  background: linear-gradient(135deg, #283048 0%, #859398 100%);
+}
+
+/* Cards Gradient (Task, Notes) */
+.pro-card-gradient {
+  background: linear-gradient(135deg, #F857A6 0%, #FF5858 100%);
+}
+
+/* Buttons/Interactions Gradient */
+.pro-button-gradient {
+  background: linear-gradient(135deg, #0F2027 0%, #2C5364 100%);
+}
+
+/* Hover effects for buttons */
+.pro-button-gradient:hover {
+  background: linear-gradient(135deg, #2C5364 0%, #0F2027 100%);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Rounded corners and shadows */
+.pro-rounded {
+  border-radius: 20px;
+}
+
+.pro-rounded-lg {
+  border-radius: 30px;
+}
+
+.pro-shadow {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.pro-shadow-lg {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom scrollbar */
+.pro-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pro-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.pro-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.pro-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Glassmorphism effect */
+.pro-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Text gradients */
+.pro-text-gradient {
+  background: linear-gradient(135deg, #F857A6 0%, #FF5858 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animation classes */
+.pro-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pro-slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fix for autofill background color override - Multiple approaches */
+
+/* Standard autofill fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0) inset !important;
+  -webkit-text-fill-color: white !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-image: none !important;
+}
+
+/* Material-UI specific autofill fix */
+.MuiOutlinedInput-input:-webkit-autofill,
+.MuiOutlinedInput-input:-webkit-autofill:hover,
+.MuiOutlinedInput-input:-webkit-autofill:focus,
+.MuiOutlinedInput-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0) inset !important;
+  -webkit-text-fill-color: white !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-image: none !important;
+}
+
+/* Force override for all input elements in forms */
+form input:-webkit-autofill,
+form input:-webkit-autofill:hover,
+form input:-webkit-autofill:focus,
+form input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: white !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Specific class for our auth forms */
+.auth-form input:-webkit-autofill,
+.auth-form input:-webkit-autofill:hover,
+.auth-form input:-webkit-autofill:focus,
+.auth-form input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: white !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: white !important;
+} 
