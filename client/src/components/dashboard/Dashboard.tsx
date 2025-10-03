@@ -107,7 +107,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
               <div className="lg:col-span-8 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-white text-2xl font-bold">
-                    Tasks Overview
+                    My Tasks Overview
                   </h2>
                   <span className="text-white/60 text-sm">
                     {filteredTasks.length} tasks
