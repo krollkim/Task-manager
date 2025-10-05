@@ -9,6 +9,5 @@ jobs:
     with:
       agents_config_path: 'agents.yaml'
       enable_ai_execution: true      # 🆕 This enables actual AI agents
-      ai_execution_mode: 'simulate'  # 🆕 Safe mode for testing
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ai_execution_mode: 'interactive'  # 🆕 Ask before each action
+    secrets: inherit
