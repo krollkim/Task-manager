@@ -24,3 +24,4 @@ server/node_modules/
 .env.production
 .env.test
 *.env
+config.bat

@@ -1,6 +1,7 @@
 {
   "name": "task-manager",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,7 +14,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "governance-workflows": "file:../governance-workflows"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
