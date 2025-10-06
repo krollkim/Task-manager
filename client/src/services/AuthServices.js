@@ -1,8 +1,7 @@
 import axios from "axios";
 
-const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5001";
 
-// הגדרת axios לשלוח cookies אוטומטית
 axios.defaults.withCredentials = true;
 
 // Register a new user
@@ -46,16 +45,13 @@ export const checkAuthStatus = async () => {
 
 // Legacy functions - יוסרו בעתיד
 export const isAuthenticated = () => {
-    // זה לא יעבוד יותר עם cookies, צריך להשתמש ב-checkAuthStatus
     return false;
 };
 
 export const getCurrentUser = () => {
-    // זה לא יעבוד יותר עם cookies, צריך להשתמש ב-checkAuthStatus
     return null;
 };
 
 export const getToken = () => {
-    // טוקן עכשיו ב-HTTPOnly cookie, לא ניתן לגישה מ-JS
     return null;
 }; 

@@ -129,7 +129,7 @@ const GoogleLogin: React.FC<GoogleLoginProps> = ({ onSuccess, onError }) => {
           // This is expected and we'll rely on the message listener
           // Silently ignore these errors to avoid console spam
         }
-      }, 1000);
+      }, 2000); // Increased interval to reduce cross-origin errors
 
       console.log('Google OAuth popup opened');
       

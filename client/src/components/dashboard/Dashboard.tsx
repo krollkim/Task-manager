@@ -107,10 +107,17 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
               <div className="lg:col-span-8 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-white text-2xl font-bold">
-                    My Tasks Overview
+                    {activeSection === 'dashboard' ? 'Dashboard Overview' : 
+                     activeSection === 'tasks' ? 'My Tasks' :
+                     activeSection === 'mail' ? 'Mail & Messages' :
+                     activeSection === 'chat' ? 'Team Chat' :
+                     activeSection === 'spaces' ? 'Shared Spaces' :
+                     activeSection === 'meet' ? 'Meetings' : 'My Tasks'}
                   </h2>
                   <span className="text-white/60 text-sm">
-                    {filteredTasks.length} tasks
+                    {activeSection === 'tasks' || activeSection === 'dashboard' ? 
+                      `${filteredTasks.length} tasks` : 
+                      'Coming Soon'}
                   </span>
                 </div>
 
@@ -136,26 +143,39 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
                   </div>
                 </div>
 
-                {/* Tasks Grid */}
+                {/* Content based on active section */}
                 <div className="flex-1 overflow-y-auto pro-scrollbar">
-                  {filteredTasks.length === 0 ? (
-                    <div className="pro-glass pro-rounded-lg p-8 text-center">
-                      <p className="text-white/60 text-lg mb-2">No tasks found</p>
-                      <p className="text-white/40 text-sm">
-                        {searchValue ? 'Try adjusting your search' : 'Create your first task to get started'}
-                      </p>
-                    </div>
+                  {(activeSection === 'tasks' || activeSection === 'dashboard') ? (
+                    // Tasks content
+                    filteredTasks.length === 0 ? (
+                      <div className="pro-glass pro-rounded-lg p-8 text-center">
+                        <p className="text-white/60 text-lg mb-2">No tasks found</p>
+                        <p className="text-white/40 text-sm">
+                          {searchValue ? 'Try adjusting your search' : 'Create your first task to get started'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filteredTasks.map((task) => (
+                          <TaskCard
+                            key={task._id}
+                            task={task}
+                            onEdit={handleTaskEdit}
+                            onDelete={handleDelete}
+                            onStatusChange={handleTaskStatusChange}
+                          />
+                        ))}
+                      </div>
+                    )
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filteredTasks.map((task) => (
-                        <TaskCard
-                          key={task._id}
-                          task={task}
-                          onEdit={handleTaskEdit}
-                          onDelete={handleDelete}
-                          onStatusChange={handleTaskStatusChange}
-                        />
-                      ))}
+                    // Placeholder content for other sections
+                    <div className="pro-glass pro-rounded-lg p-8 text-center">
+                      <p className="text-white/60 text-lg mb-2">
+                        {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Feature
+                      </p>
+                      <p className="text-white/40 text-sm">
+                        This feature is coming soon! We're working hard to bring you the best experience.
+                      </p>
                     </div>
                   )}
                 </div>

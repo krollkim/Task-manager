@@ -61,6 +61,20 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     onDateSelect?.(newDate);
   };
 
+  const handleCancel = () => {
+    // Reset to today's date
+    const today = new Date();
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
+    onDateSelect?.(today);
+  };
+
+  const handleOK = () => {
+    // Maybe close a modal or confirm the selection
+    // For now, just ensure the selected date is confirmed
+    onDateSelect?.(selectedDate);
+  };
+
   const isToday = (day: number) => {
     const today = new Date();
     return (
@@ -178,11 +192,17 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
       {/* Action Buttons */}
       <div className="flex space-x-2 mt-4">
-        <button className="flex-1 py-2 text-white/60 text-sm hover:text-white transition-colors duration-200">
-          Cancel
+        <button 
+          onClick={handleCancel}
+          className="flex-1 py-2 text-white/60 text-sm hover:text-white transition-colors duration-200"
+        >
+          Today
         </button>
-        <button className="flex-1 py-2 pro-button-gradient pro-rounded text-white text-sm font-medium hover:scale-105 transition-transform duration-200">
-          OK
+        <button 
+          onClick={handleOK}
+          className="flex-1 py-2 pro-button-gradient pro-rounded text-white text-sm font-medium hover:scale-105 transition-transform duration-200"
+        >
+          Select
         </button>
       </div>
     </div>

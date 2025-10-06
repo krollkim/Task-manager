@@ -80,8 +80,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div className={`
       pro-card-gradient pro-rounded pro-shadow
-      p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg
+      p-5 transition-all duration-500 ease-out hover:scale-[1.03] hover:shadow-2xl
+      hover:shadow-white/5 hover:-translate-y-1 
       relative group cursor-pointer pro-fade-in
+      animate-pulse-subtle
+      ${task.status === 'done' ? 'opacity-90 hover:opacity-100' : ''}
       ${className}
     `}>
       {/* Header */}
@@ -89,13 +92,17 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex items-center space-x-3 flex-1">
           <button 
             onClick={handleStatusToggle}
-            className="flex-shrink-0 hover:scale-110 transition-transform duration-200"
+            className="flex-shrink-0 hover:scale-125 active:scale-95 transition-all duration-300 
+                       hover:drop-shadow-lg active:animate-bounce-subtle
+                       focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 
+                       focus:ring-offset-transparent rounded-full p-1"
           >
             {getStatusIcon(task.status)}
           </button>
           <h3 className={`
-            text-white font-semibold text-lg leading-tight flex-1
-            ${task.status === 'done' ? 'line-through opacity-75' : ''}
+            text-white font-semibold text-lg leading-tight flex-1 transition-all duration-500
+            hover:text-white/90 group-hover:translate-x-1
+            ${task.status === 'done' ? 'line-through opacity-75 text-green-200' : ''}
           `}>
             {task.task}
           </h3>
@@ -125,7 +132,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
             size="small"
             className={`
               ${getStatusColor(task.status)}
-              border font-medium text-xs capitalize
+              border font-medium text-xs capitalize transition-all duration-300
+              hover:scale-105 hover:shadow-lg cursor-pointer
+              ${task.status === 'done' ? 'animate-pulse-slow' : ''}
             `}
           />
         </div>

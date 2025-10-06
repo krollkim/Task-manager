@@ -54,7 +54,7 @@ const deleteTask = async (id) => {
   console.log("Deleting task with ID:", id);
   if (DB === "MONGODB") {
     try {
-      const deletedTask = await Task.findByIdAndDelete({ _id: id });
+      const deletedTask = await Task.findByIdAndDelete(id);
       console.log("Result of deletion:", deletedTask);
       if (!deletedTask) {
         const error = new Error("Task not found");
@@ -86,7 +86,7 @@ const editTask = async (taskId, updatedData) => {
       editedTask.status = updatedData.status || editedTask.status;
       editedTask.description = updatedData.description || editedTask.description;
       await editedTask.save();
-      return { ...editedTask.toObject(), id: editedTask.id, id: editedTask.id };
+      return editedTask.toObject();
     } catch (error) {
       console.error("Error in editTask:", error.message);
       error.status = 400;

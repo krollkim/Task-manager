@@ -3,11 +3,7 @@ import config from "config";
 const ENVIRONMENT = config.get("NODE_ENV");
 
 export const connectToDb = async () => {
-  if (ENVIRONMENT === "development") {
-    await import("./mongoDB/connectToMongodbLocally.js");
-  } else if (ENVIRONMENT === "production") {
-    await import("./mongoDB/connectToAtlas.js");
-  } else {
-    console.log("No valid environment set for database connection");
-  }
+  // Use Atlas for both development and production
+  console.log(`Environment: ${ENVIRONMENT} - Connecting to MongoDB Atlas...`);
+  await import("./mongoDB/connectToAtlas.js");
 };
