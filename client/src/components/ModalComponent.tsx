@@ -93,8 +93,11 @@ const ModalComponent: React.FC<ModalProps> = ({
       className="ReactModal__Content"
       overlayClassName="ReactModal__Overlay"
       ariaHideApp={false}
+      closeTimeoutMS={300}
+      shouldCloseOnOverlayClick={true}
+      shouldCloseOnEsc={true}
     >
-      <div className="pro-card-gradient pro-rounded-lg p-6 w-full max-w-md mx-auto relative">
+      <div className="pro-card-gradient pro-rounded-lg p-4 md:p-6 w-full max-w-md mx-auto relative pro-shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
@@ -185,23 +188,71 @@ const ModalComponent: React.FC<ModalProps> = ({
 
             {/* Status */}
             <FormControl fullWidth>
-              <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Status</InputLabel>
+              <InputLabel 
+                id="status-select-label"
+                sx={{ color: 'rgba(255,255,255,0.7)' }}
+              >
+                Status
+              </InputLabel>
               <Select
+                labelId="status-select-label"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as Task['status'])}
                 label="Status"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: 'rgba(40, 40, 40, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '12px',
+                      mt: 1,
+                      '& .MuiMenuItem-root': {
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(103, 126, 234, 0.3)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(103, 126, 234, 0.4)',
+                          }
+                        }
+                      }
+                    }
+                  }
+                }}
                 sx={{
                   backgroundColor: 'transparent',
                   color: 'white',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.5)' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.7)' },
-                  '& .MuiSvgIcon-root': { color: 'rgba(255,255,255,0.7)' }
+                  '& .MuiOutlinedInput-notchedOutline': { 
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    borderWidth: '1px'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { 
+                    borderColor: 'rgba(255,255,255,0.5)' 
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { 
+                    borderColor: 'rgba(255,255,255,0.7)',
+                    borderWidth: '2px'
+                  },
+                  '& .MuiSvgIcon-root': { 
+                    color: 'rgba(255,255,255,0.7)' 
+                  },
+                  '& .MuiSelect-select': {
+                    color: 'white'
+                  }
                 }}
               >
-                <MenuItem value="todo">To Do</MenuItem>
-                <MenuItem value="in-progress">In Progress</MenuItem>
-                <MenuItem value="done">Done</MenuItem>
+                <MenuItem value="todo">
+                  <span style={{ color: '#60a5fa' }}>📋</span>&nbsp;&nbsp;To Do
+                </MenuItem>
+                <MenuItem value="in-progress">
+                  <span style={{ color: '#fbbf24' }}>⏳</span>&nbsp;&nbsp;In Progress
+                </MenuItem>
+                <MenuItem value="done">
+                  <span style={{ color: '#34d399' }}>✅</span>&nbsp;&nbsp;Done
+                </MenuItem>
               </Select>
             </FormControl>
           </div>

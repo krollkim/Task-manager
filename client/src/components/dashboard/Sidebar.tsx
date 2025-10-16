@@ -5,9 +5,8 @@ import {
   FolderOutlined, 
   VideocamOutlined,
   DashboardOutlined,
-  AssignmentOutlined 
+  AssignmentOutlined
 } from '@mui/icons-material';
-import '../../dashboard.css';
 
 interface SidebarItem {
   icon: React.ReactNode;
@@ -19,9 +18,11 @@ interface SidebarItem {
 interface SidebarProps {
   activeItem?: string;
   onItemClick?: (item: string) => void;
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick, onClose, isMobile = false }) => {
   const sidebarItems: SidebarItem[] = [
     {
       icon: <DashboardOutlined />,
@@ -62,12 +63,25 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick }) 
   ];
 
   return (
-    <div className="pro-sidebar-gradient pro-rounded-lg pro-shadow-lg h-full w-64 flex flex-col p-6 pro-slide-in">
+    <div className="pro-sidebar-gradient pro-rounded-lg pro-shadow-lg h-full w-64 flex flex-col p-6 pro-slide-in relative">
+      {/* Mobile Close Button */}
+      {/* {isMobile && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
+        >
+          <CloseOutlined />
+        </button>
+      )} */}
+      
       {/* Logo/Brand */}
       <div className="mb-8">
         <h1 className="text-white text-2xl font-bold tracking-wider">
           Task<span className="pro-text-gradient">Manager</span>
         </h1>
+        {isMobile && (
+          <p className="text-white/50 text-sm mt-1">Mobile Navigation</p>
+        )}
       </div>
 
       {/* Navigation Items */}

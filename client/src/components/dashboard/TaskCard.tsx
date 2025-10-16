@@ -10,7 +10,6 @@ import {
 } from '@mui/icons-material';
 import { IconButton, Chip, Menu, MenuItem, Divider } from '@mui/material';
 import { Task } from '../../types/types';
-import '../../dashboard.css';
 
 interface TaskCardProps {
   task: Task;
@@ -79,11 +78,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div className={`
-      pro-card-gradient pro-rounded pro-shadow
+      bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl shadow-lg
       p-5 transition-all duration-500 ease-out hover:scale-[1.03] hover:shadow-2xl
       hover:shadow-white/5 hover:-translate-y-1 
-      relative group cursor-pointer pro-fade-in
-      animate-pulse-subtle
+      relative group cursor-pointer
       ${task.status === 'done' ? 'opacity-90 hover:opacity-100' : ''}
       ${className}
     `}>
@@ -151,7 +149,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         open={open}
         onClose={handleClose}
         PaperProps={{
-          className: 'pro-button-gradient pro-rounded border border-white/10',
+          className: 'bg-slate-800/90 backdrop-blur-sm rounded-xl border border-white/10',
           style: { marginTop: 8 }
         }}
       >

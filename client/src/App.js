@@ -1,5 +1,4 @@
 import './App.css';
-import './dashboard.css';
 import AppRouter from './components/AppRouter';
 
 function App() {
