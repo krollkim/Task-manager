@@ -7,7 +7,6 @@ import {
   PushPinOutlined 
 } from '@mui/icons-material';
 import { IconButton, Menu, MenuItem, TextField } from '@mui/material';
-import '../../dashboard.css';
 
 interface Note {
   id: string;
@@ -154,7 +153,7 @@ const NotesWidget: React.FC<NotesWidgetProps> = ({
       )}
 
       {/* Notes List */}
-      <div className="space-y-3 max-h-64 overflow-y-auto pro-scrollbar">
+      <div className="space-y-3 max-h-64 md:max-h-80 overflow-y-auto pro-scrollbar">
         {sortedNotes.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-white/60 text-sm">No notes yet</p>

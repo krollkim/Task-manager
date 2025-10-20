@@ -6,7 +6,6 @@ import {
   TodayOutlined 
 } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
-import '../../dashboard.css';
 
 interface CalendarWidgetProps {
   selectedDate?: Date;
