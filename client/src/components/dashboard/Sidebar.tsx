@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   MailOutline, 
   ChatBubbleOutline, 
   FolderOutlined, 
   VideocamOutlined,
   DashboardOutlined,
-  AssignmentOutlined
+  AssignmentOutlined,
+  SettingsOutlined,
+  LogoutOutlined
 } from '@mui/icons-material';
+import { Menu, MenuItem, Avatar } from '@mui/material';
 
 interface SidebarItem {
   icon: React.ReactNode;
@@ -20,9 +23,32 @@ interface SidebarProps {
   onItemClick?: (item: string) => void;
   onClose?: () => void;
   isMobile?: boolean;
+  currentUser?: { name?: string; email?: string };
+  onLogout?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick, onClose, isMobile = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  activeItem = 'tasks', 
+  onItemClick, 
+  onClose, 
+  isMobile = false, 
+  currentUser, 
+  onLogout 
+}) => {
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleLogout = () => {
+    onLogout?.();
+    handleUserMenuClose();
+  };
   const sidebarItems: SidebarItem[] = [
     {
       icon: <DashboardOutlined />,
@@ -117,15 +143,47 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick, on
 
       {/* User Profile Section */}
       <div className="mt-8 p-4 pro-glass pro-rounded">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 pro-card-gradient pro-rounded flex items-center justify-center">
-            <span className="text-white font-bold text-sm">U</span>
-          </div>
-          <div>
-            <p className="text-white text-sm font-medium">User Name</p>
-            <p className="text-white/60 text-xs">Pro Member</p>
-          </div>
+        <div className="flex items-center space-x-2 md:space-x-3">
+          <Avatar
+            onClick={handleUserMenuClick}
+            className="pro-card-gradient cursor-pointer hover:scale-105 transition-transform duration-200"
+            sx={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36 }}
+          >
+            {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
+          </Avatar>
+          {!isMobile && (
+            <div className="text-white">
+              <p className="text-sm font-medium">{currentUser?.name || 'User Name'}</p>
+              <p className="text-xs text-white/60">Online</p>
+            </div>
+          )}
         </div>
+
+        {/* User Menu */}
+        <Menu
+          anchorEl={userMenuAnchor}
+          open={Boolean(userMenuAnchor)}
+          onClose={handleUserMenuClose}
+          PaperProps={{
+            className: 'pro-button-gradient pro-rounded border border-white/10',
+            style: { marginTop: 8 }
+          }}
+        >
+          <MenuItem 
+            onClick={handleUserMenuClose}
+            className="text-white hover:bg-white/10"
+          >
+            <SettingsOutlined className="mr-2" fontSize="small" />
+            Settings
+          </MenuItem>
+          <MenuItem 
+            onClick={handleLogout}
+            className="text-red-300 hover:bg-red-500/10"
+          >
+            <LogoutOutlined className="mr-2" fontSize="small" />
+            Logout
+          </MenuItem>
+        </Menu>
       </div>
     </div>
   );
