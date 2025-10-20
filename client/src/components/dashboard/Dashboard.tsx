@@ -10,6 +10,8 @@ import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
 import { useTasks } from '../../hooks/useTasks';
 import { Task } from '../../types/types';
+import { useAuth } from '../auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardProps {
   isMobile?: boolean;
@@ -18,6 +20,8 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
+  const { user: currentUser, logout } = useAuth();
   
   const {
     tasks,
@@ -86,6 +90,11 @@ const Dashboard: React.FC<DashboardProps> = () => {
     openModal(null as any, 'edit');
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   const handleModalSave = async (updatedTask: Partial<Task>) => {
     if (taskToEdit) {
       // Edit existing task
@@ -112,6 +121,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 onItemClick={handleSectionChange}
                 onClose={handleSidebarClose}
                 isMobile={isMobile}
+                currentUser={currentUser}
+                onLogout={handleLogout}
               />
             </div>
           )}
