@@ -5,29 +5,29 @@ import { v4 as uuidv4 } from 'uuid';
 const DB = process.env.DB || "MONGODB";
 
 // Function to get all tasks from MongoDB
-const getTasks = async () => {
+const getTasks = async (userId) => {
   if (DB === "MONGODB") {
     try {
-      const tasks = await Task.find();
+      const tasks = await Task.find({ userId });
       return Promise.resolve(tasks);
     } catch (error) {
       error.status = 404;
-      return handleError(error);
+      throw error;
     }
   }
   return Promise.resolve("get tasks not in mongodb");
 };
 
 // Function to get a single task by ID
-const getTask = async (taskId) => {
+const getTask = async (taskId, userId) => {
   if (DB === "MONGODB") {
     try {
-      const task = await Task.findById(taskId);
+      const task = await Task.findOne({ _id: taskId, userId });
       if (!task) throw new Error("Could not find this task in the database");
       return Promise.resolve(task);
     } catch (error) {
       error.status = 404;
-      return handleError(error);
+      throw error;
     }
   }
   return Promise.resolve("get task not in mongodb");
@@ -43,18 +43,18 @@ const createTask = async (taskData) => {
       return Promise.resolve(task);
     } catch (error) {
       error.status = 400;
-      return handleError(error);
+      throw error;
     }
   }
   return Promise.resolve("create task not in mongodb");
 };
 
 // Function to delete task by id
-const deleteTask = async (id) => {
-  console.log("Deleting task with ID:", id);
+const deleteTask = async (id, userId) => {
+  console.log("Deleting task with ID:", id, "for user:", userId);
   if (DB === "MONGODB") {
     try {
-      const deletedTask = await Task.findByIdAndDelete(id);
+      const deletedTask = await Task.findOneAndDelete({ _id: id, userId });
       console.log("Result of deletion:", deletedTask);
       if (!deletedTask) {
         const error = new Error("Task not found");
@@ -72,11 +72,11 @@ const deleteTask = async (id) => {
 
 
 
-const editTask = async (taskId, updatedData) => {
+const editTask = async (taskId, updatedData, userId) => {
   if (DB === "MONGODB") {
     try {
-      console.log("editTask called with taskId:", taskId);
-      const editedTask = await Task.findById(taskId);
+      console.log("editTask called with taskId:", taskId, "for user:", userId);
+      const editedTask = await Task.findOne({ _id: taskId, userId });
       if (!editedTask) {
         console.log("Task not found in the database.");
         throw new Error("Task not found");
@@ -90,7 +90,7 @@ const editTask = async (taskId, updatedData) => {
     } catch (error) {
       console.error("Error in editTask:", error.message);
       error.status = 400;
-      return handleError(error);
+      throw error;
     }
   }
   return "edit task not available in mongodb";

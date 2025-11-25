@@ -5,11 +5,14 @@ export default function (req, res, next) {
   const token = req.cookies.token
   
   if (!token) {
+    console.log('No token found in cookies')
     return res.status(401).json({ msg: 'No token, authentication denied' })
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key')
+    console.log('Decoded token:', decoded)
+    console.log('User ID:', decoded.id)
     req.user = decoded
     next()
   } catch (e) {
