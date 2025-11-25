@@ -16,6 +16,13 @@ router.post('/register', async (req, res) => {
     const existing = await User.findOne({ email })
     if (existing) return res.status(400).json({ msg: 'Email already exists' })
 
+    // Clear any existing token first
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    })
+
     const user = await User.create({ name, email, password })
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'fallback_secret_key', { expiresIn: '1d' })
 
@@ -42,6 +49,13 @@ router.post('/login', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' })
+
+    // Clear any existing token first
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    })
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'fallback_secret_key', { expiresIn: '1d' })
     
@@ -107,6 +121,13 @@ router.post('/auth/google', async (req, res) => {
       if (picture) user.avatar = picture
       await user.save()
     }
+
+    // Clear any existing token first
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    })
 
     // Create JWT token
     const jwtToken = jwt.sign(

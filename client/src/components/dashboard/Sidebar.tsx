@@ -1,13 +1,4 @@
-import React from 'react';
-import { 
-  MailOutline, 
-  ChatBubbleOutline, 
-  FolderOutlined, 
-  VideocamOutlined,
-  DashboardOutlined,
-  AssignmentOutlined 
-} from '@mui/icons-material';
-import '../../dashboard.css';
+import React, { useState } from 'react';
 
 interface SidebarItem {
   icon: React.ReactNode;
@@ -19,42 +10,68 @@ interface SidebarItem {
 interface SidebarProps {
   activeItem?: string;
   onItemClick?: (item: string) => void;
+  onClose?: () => void;
+  isMobile?: boolean;
+  currentUser?: { name?: string; email?: string };
+  onLogout?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  activeItem = 'tasks', 
+  onItemClick, 
+  onClose, 
+  isMobile = false, 
+  currentUser, 
+  onLogout 
+}) => {
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const handleUserMenuToggle = () => {
+    setUserMenuOpen(!userMenuOpen);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    onLogout?.();
+    handleUserMenuClose();
+  };
+
   const sidebarItems: SidebarItem[] = [
     {
-      icon: <DashboardOutlined />,
+      icon: <span className="text-xl">📊</span>,
       label: 'Dashboard',
       active: activeItem === 'dashboard',
       onClick: () => onItemClick?.('dashboard')
     },
     {
-      icon: <AssignmentOutlined />,
+      icon: <span className="text-xl">📋</span>,
       label: 'Tasks',
       active: activeItem === 'tasks',
       onClick: () => onItemClick?.('tasks')
     },
     {
-      icon: <MailOutline />,
+      icon: <span className="text-xl">📧</span>,
       label: 'Mail',
       active: activeItem === 'mail',
       onClick: () => onItemClick?.('mail')
     },
     {
-      icon: <ChatBubbleOutline />,
+      icon: <span className="text-xl">💬</span>,
       label: 'Chat',
       active: activeItem === 'chat',
       onClick: () => onItemClick?.('chat')
     },
     {
-      icon: <FolderOutlined />,
+      icon: <span className="text-xl">📁</span>,
       label: 'Spaces',
       active: activeItem === 'spaces',
       onClick: () => onItemClick?.('spaces')
     },
     {
-      icon: <VideocamOutlined />,
+      icon: <span className="text-xl">📹</span>,
       label: 'Meet',
       active: activeItem === 'meet',
       onClick: () => onItemClick?.('meet')
@@ -62,12 +79,25 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick }) 
   ];
 
   return (
-    <div className="pro-sidebar-gradient pro-rounded-lg pro-shadow-lg h-full w-64 flex flex-col p-6 pro-slide-in">
+    <div className="pro-sidebar-gradient pro-rounded-lg pro-shadow-lg h-full w-64 flex flex-col p-6 pro-slide-in relative">
+      {/* Mobile Close Button */}
+      {isMobile && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
+        >
+          ✕
+        </button>
+      )}
+      
       {/* Logo/Brand */}
       <div className="mb-8">
         <h1 className="text-white text-2xl font-bold tracking-wider">
           Task<span className="pro-text-gradient">Manager</span>
         </h1>
+        {isMobile && (
+          <p className="text-white/50 text-sm mt-1">Mobile Navigation</p>
+        )}
       </div>
 
       {/* Navigation Items */}
@@ -102,19 +132,52 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'tasks', onItemClick }) 
       </nav>
 
       {/* User Profile Section */}
-      <div className="mt-8 p-4 pro-glass pro-rounded">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 pro-card-gradient pro-rounded flex items-center justify-center">
-            <span className="text-white font-bold text-sm">U</span>
-          </div>
-          <div>
-            <p className="text-white text-sm font-medium">User Name</p>
-            <p className="text-white/60 text-xs">Pro Member</p>
-          </div>
+      <div className="mt-8 p-4 pro-glass pro-rounded relative">
+        <div className="flex items-center space-x-2 md:space-x-3">
+          <button
+            onClick={handleUserMenuToggle}
+            className={`pro-card-gradient cursor-pointer hover:scale-105 transition-transform duration-200 rounded-full flex items-center justify-center text-white font-semibold ${isMobile ? 'w-8 h-8 text-sm' : 'w-9 h-9 text-base'}`}
+          >
+            {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
+          </button>
+          {!isMobile && (
+            <div className="text-white">
+              <p className="text-sm font-medium">{currentUser?.name || 'User Name'}</p>
+              <p className="text-xs text-white/60">Online</p>
+            </div>
+          )}
         </div>
+
+        {/* User Menu */}
+        {userMenuOpen && (
+          <div className="absolute bottom-full left-0 mb-2 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-white/10 shadow-lg z-50 min-w-[150px]">
+            <button 
+              onClick={handleUserMenuClose}
+              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center rounded-t-lg"
+            >
+              <span className="mr-2 text-sm">⚙️</span>
+              Settings
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-full px-4 py-3 text-left text-red-300 hover:bg-red-500/10 transition-colors duration-200 flex items-center rounded-b-lg"
+            >
+              <span className="mr-2 text-sm">🚪</span>
+              Logout
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Click outside to close menu */}
+      {userMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={handleUserMenuClose}
+        />
+      )}
     </div>
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

@@ -3,7 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 // const chalk = require("chalk");
-import taskRouter from './routes/taskRouter.js';
+import TaskRouter from './routes/TaskRouter.js';
+import NoteRouter from './routes/NoteRouter.js';
 import authRouter from './routes/Auth.js';
 import {connectToDb} from './DB/dbService.js';
 
@@ -26,7 +27,14 @@ app.options('*', cors());
 
 connectToDb();
 
-app.use('/tasks', taskRouter);
+// Log all routes for debugging
+app.use((req, res, next) => {
+    console.log(`📍 ${req.method} ${req.url} - Headers: ${JSON.stringify(req.headers.cookie || 'no-cookie')}`);
+    next();
+});
+
+app.use('/tasks', TaskRouter);
+app.use('/notes', NoteRouter);
 app.use('/', authRouter);
 
 app.get('/', (req, res) => res.send("ok"));

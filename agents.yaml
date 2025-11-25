@@ -39,10 +39,10 @@ agents:
 
   fe:
     name: Frontend Expert
-    domains: [react, typescript, mui, tailwindcss, routing]
+    domains: [react, typescript, tailwindcss, routing]
     rules:
       - maintain component structure in client/src/components/
-      - use Material-UI and TailwindCSS for styling
+      - use TailwindCSS for styling
       - follow React Router patterns for navigation
 
   be:

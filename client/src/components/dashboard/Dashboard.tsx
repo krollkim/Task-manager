@@ -1,21 +1,36 @@
-import React, { useState } from 'react';
-import { AddOutlined } from '@mui/icons-material';
-import { Fab } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import TaskCard from './TaskCard';
 import CalendarWidget from './CalendarWidget';
 import NotesWidget from './NotesWidget';
+import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
 import { useTasks } from '../../hooks/useTasks';
 import { Task } from '../../types/types';
-import '../../dashboard.css';
+import { useAuth } from '../auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardProps {
   isMobile?: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
+const Dashboard: React.FC<DashboardProps> = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  const navigate = useNavigate();
+  const { user: currentUser, logout } = useAuth();
+  
   const {
     tasks,
     handleAddTask,
@@ -28,10 +43,25 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
     modalMode,
   } = useTasks();
 
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  // // Debug logging
+  // useEffect(() => {
+  //   console.log('🎯 Dashboard tasks state:', tasks);
+  //   console.log('🎯 Tasks length:', tasks?.length);
+  // }, [tasks]);
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('tasks');
   const [searchValue, setSearchValue] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Close sidebar when switching to mobile
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }, [isMobile]);
 
   // Filter tasks based on search
   const filteredTasks = tasks.filter(task =>
@@ -50,6 +80,17 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const handleSidebarClose = () => {
+    setSidebarOpen(false);
+  };
+
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    if (isMobile) {
+      setSidebarOpen(false); // Auto-close sidebar on mobile after selection
+    }
+  };
+
   const handleTaskEdit = (task: Task) => {
     openModal(task, 'edit');
   };
@@ -63,6 +104,11 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
     openModal(null as any, 'edit');
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   const handleModalSave = async (updatedTask: Partial<Task>) => {
     if (taskToEdit) {
       // Edit existing task
@@ -74,10 +120,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
-      <div className="max-w-[1800px] mx-auto">
-        <div className="flex gap-6 h-screen">
-          {/* Sidebar */}
+    <div className={`${isMobile ? 'min-h-screen' : 'h-screen'} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${isMobile ? '' : 'overflow-hidden'}`}>
+      <div className={`max-w-[1800px] mx-auto ${isMobile ? '' : 'h-full'} p-4 pb-20 md:pb-4 box-border`}>
+        <div className={`flex gap-6 ${isMobile ? 'min-h-screen' : 'h-full'}`}>
+          {/* Desktop/Tablet Sidebar */}
           {(!isMobile || sidebarOpen) && (
             <div className={`
               ${isMobile ? 'fixed inset-y-0 left-0 z-50 w-64' : 'w-64'}
@@ -86,13 +132,17 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
             `}>
               <Sidebar
                 activeItem={activeSection}
-                onItemClick={setActiveSection}
+                onItemClick={handleSectionChange}
+                onClose={handleSidebarClose}
+                isMobile={isMobile}
+                currentUser={currentUser}
+                onLogout={handleLogout}
               />
             </div>
           )}
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className={`flex-1 flex flex-col min-w-0 ${isMobile ? '' : 'h-full overflow-hidden'}`}>
             {/* Header */}
             <Header
               searchValue={searchValue}
@@ -102,9 +152,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
             />
 
             {/* Dashboard Content */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+            <div className={`flex-1 ${isMobile ? 'flex flex-col' : 'flex flex-col lg:grid lg:grid-cols-12'} gap-6 ${isMobile ? '' : 'min-h-0'}`}>
               {/* Tasks Section */}
-              <div className="lg:col-span-8 flex flex-col">
+              <div className={`${isMobile ? 'w-full' : 'lg:col-span-8'} flex flex-col`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-white text-2xl font-bold">
                     {activeSection === 'dashboard' ? 'Dashboard Overview' : 
@@ -122,51 +172,54 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
                 </div>
 
                 {/* Task Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="pro-glass pro-rounded p-4 text-center">
-                    <div className="text-blue-400 text-2xl font-bold">
+                <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
+                  <div className="pro-glass pro-rounded p-3 md:p-4 text-center">
+                    <div className="text-blue-400 text-xl md:text-2xl font-bold">
                       {tasksByStatus.todo.length}
                     </div>
-                    <div className="text-white/60 text-sm">To Do</div>
+                    <div className="text-white/60 text-xs md:text-sm">To Do</div>
                   </div>
-                  <div className="pro-glass pro-rounded p-4 text-center">
-                    <div className="text-yellow-400 text-2xl font-bold">
+                  <div className="pro-glass pro-rounded p-3 md:p-4 text-center">
+                    <div className="text-yellow-400 text-xl md:text-2xl font-bold">
                       {tasksByStatus['in-progress'].length}
                     </div>
-                    <div className="text-white/60 text-sm">In Progress</div>
+                    <div className="text-white/60 text-xs md:text-sm">In Progress</div>
                   </div>
-                  <div className="pro-glass pro-rounded p-4 text-center">
-                    <div className="text-green-400 text-2xl font-bold">
+                  <div className="pro-glass pro-rounded p-3 md:p-4 text-center">
+                    <div className="text-green-400 text-xl md:text-2xl font-bold">
                       {tasksByStatus.done.length}
                     </div>
-                    <div className="text-white/60 text-sm">Completed</div>
+                    <div className="text-white/60 text-xs md:text-sm">Completed</div>
                   </div>
                 </div>
 
                 {/* Content based on active section */}
-                <div className="flex-1 overflow-y-auto pro-scrollbar">
+                <div className="flex-1 overflow-y-auto scrollbar-hide">
                   {(activeSection === 'tasks' || activeSection === 'dashboard') ? (
-                    // Tasks content
-                    filteredTasks.length === 0 ? (
-                      <div className="pro-glass pro-rounded-lg p-8 text-center">
-                        <p className="text-white/60 text-lg mb-2">No tasks found</p>
-                        <p className="text-white/40 text-sm">
-                          {searchValue ? 'Try adjusting your search' : 'Create your first task to get started'}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {filteredTasks.map((task) => (
-                          <TaskCard
-                            key={task._id}
-                            task={task}
-                            onEdit={handleTaskEdit}
-                            onDelete={handleDelete}
-                            onStatusChange={handleTaskStatusChange}
-                          />
-                        ))}
-                      </div>
-                    )
+                    <>
+                      
+                      {/* Tasks content */}
+                      {filteredTasks.length === 0 ? (
+                        <div className="pro-glass pro-rounded-lg p-8 text-center">
+                          <p className="text-white/60 text-lg mb-2">No tasks found</p>
+                          <p className="text-white/40 text-sm">
+                            {searchValue ? 'Try adjusting your search' : 'Create your first task to get started'}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+                          {filteredTasks.map((task) => (
+                            <TaskCard
+                              key={task._id}
+                              task={task}
+                              onEdit={handleTaskEdit}
+                              onDelete={handleDelete}
+                              onStatusChange={handleTaskStatusChange}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     // Placeholder content for other sections
                     <div className="pro-glass pro-rounded-lg p-8 text-center">
@@ -181,37 +234,40 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
                 </div>
               </div>
 
-              {/* Right Sidebar - Calendar & Notes */}
-              <div className="lg:col-span-4 flex flex-col space-y-6">
-                {/* Calendar Widget */}
+              {/* Desktop: Right Sidebar - Calendar & Notes */}
+              {!isMobile && (
+                <div className="lg:col-span-4 flex flex-col space-y-6 min-h-0">
+                  <CalendarWidget
+                    selectedDate={selectedDate}
+                    onDateSelect={setSelectedDate}
+                    className="flex-shrink-0"
+                  />
+                  <NotesWidget className="flex-1" />
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Widgets - ALWAYS RENDERED outside main grid */}
+            {isMobile && (
+              <div className="flex flex-col space-y-6 mt-6">
                 <CalendarWidget
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
-                  className="flex-shrink-0"
+                  className="w-full"
                 />
-
-                {/* Notes Widget */}
-                <NotesWidget className="flex-1 min-h-0" />
+                <NotesWidget className="w-full min-h-[300px]" />
               </div>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Floating Action Button */}
-        <Fab
+        <button
           onClick={handleAddNewTask}
-          className="pro-card-gradient hover:scale-110 transition-transform duration-200"
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            '&:hover': {
-              transform: 'scale(1.1)',
-            }
-          }}
+          className={`fixed ${isMobile ? 'bottom-20 right-6' : 'bottom-6 left-6'} w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform duration-200 z-50`}
         >
-          <AddOutlined className="text-white" />
-        </Fab>
+          <span className="text-2xl font-bold">+</span>
+        </button>
 
         {/* Modal for editing/adding tasks */}
         <ModalComponent
@@ -229,9 +285,17 @@ const Dashboard: React.FC<DashboardProps> = ({ isMobile = false }) => {
             onClick={() => setSidebarOpen(false)}
           />
         )}
+
+        {/* Mobile Bottom Navigation */}
+        {isMobile && (
+          <MobileBottomNav
+            activeItem={activeSection}
+            onItemClick={handleSectionChange}
+          />
+        )}
       </div>
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

@@ -1,11 +1,13 @@
 import './App.css';
-import './dashboard.css';
 import AppRouter from './components/AppRouter';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
   return (
     <div className="App">
-      <AppRouter />
+      <ErrorBoundary>
+        <AppRouter />
+      </ErrorBoundary>
     </div>
   );
 }

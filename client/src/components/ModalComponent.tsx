@@ -1,21 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
-import { 
-  CloseOutlined, 
-  SaveOutlined,
-  EditOutlined,
-  DescriptionOutlined,
-} from '@mui/icons-material';
-import { 
-  TextField, 
-  Button, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem,
-  IconButton,
-  Chip
-} from '@mui/material';
 import { Task, ModalProps } from '../types/types';
 import '../App.css';
 
@@ -93,19 +77,22 @@ const ModalComponent: React.FC<ModalProps> = ({
       className="ReactModal__Content"
       overlayClassName="ReactModal__Overlay"
       ariaHideApp={false}
+      closeTimeoutMS={300}
+      shouldCloseOnOverlayClick={true}
+      shouldCloseOnEsc={true}
     >
-      <div className="pro-card-gradient pro-rounded-lg p-6 w-full max-w-md mx-auto relative">
+      <div className="pro-card-gradient pro-rounded-lg p-4 md:p-6 w-full max-w-md mx-auto relative pro-shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
-            <EditOutlined className="text-white/80" />
+            <span className="text-white/80 text-xl">✏️</span>
             <h2 className="text-xl font-semibold text-white">
               {modalMode === 'edit' ? (taskToEdit ? 'Edit Task' : 'New Task') : 'Task Details'}
             </h2>
           </div>
-          <IconButton onClick={handleClose} className="text-white/60 hover:text-white">
-            <CloseOutlined />
-          </IconButton>
+          <button onClick={handleClose} className="text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
+            <span className="text-xl">✕</span>
+          </button>
         </div>
 
         {modalMode === 'preview' ? (
@@ -113,18 +100,19 @@ const ModalComponent: React.FC<ModalProps> = ({
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium text-white mb-2">{taskToEdit?.task}</h3>
-              <Chip 
-                label={getStatusLabel(taskToEdit?.status || 'todo')}
-                color={getStatusColor(taskToEdit?.status || 'todo')}
-                size="small"
-                className="mb-3"
-              />
+              <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full mb-3 ${
+                taskToEdit?.status === 'done' ? 'bg-green-600/20 text-green-400' : 
+                taskToEdit?.status === 'in-progress' ? 'bg-yellow-600/20 text-yellow-400' : 
+                'bg-blue-600/20 text-blue-400'
+              }`}>
+                {getStatusLabel(taskToEdit?.status || 'todo')}
+              </span>
             </div>
             
             {taskToEdit?.description && (
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <DescriptionOutlined className="text-white/60" fontSize="small" />
+                  <span className="text-white/60 text-sm">📝</span>
                   <span className="text-white/80 text-sm font-medium">Description</span>
                 </div>
                 <p className="text-white/70 text-sm leading-relaxed pl-6">
@@ -143,96 +131,69 @@ const ModalComponent: React.FC<ModalProps> = ({
           // Edit Mode
           <div className="space-y-4">
             {/* Task Name */}
-            <TextField
-              label="Task Name"
-              value={task}
-              onChange={(e) => setTask(e.target.value)}
-              fullWidth
-              variant="outlined"
-              required
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'transparent',
-                  '& fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
-                  '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.5)' },
-                  '&.Mui-focused fieldset': { borderColor: 'rgba(255,255,255,0.7)' }
-                },
-                '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' },
-                '& .MuiInputBase-input': { color: 'white' }
-              }}
-            />
+            <div>
+              <label className="block text-white/70 text-sm font-medium mb-2">Task Name *</label>
+              <input
+                type="text"
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
+                className="w-full px-3 py-2 bg-transparent border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/70 focus:ring-1 focus:ring-white/70 hover:border-white/50 transition-colors"
+                placeholder="Enter task name..."
+                required
+              />
+            </div>
 
             {/* Description */}
-            <TextField
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multiline
-              rows={3}
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'transparent',
-                  '& fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
-                  '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.5)' },
-                  '&.Mui-focused fieldset': { borderColor: 'rgba(255,255,255,0.7)' }
-                },
-                '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' },
-                '& .MuiInputBase-input': { color: 'white' }
-              }}
-            />
+            <div>
+              <label className="block text-white/70 text-sm font-medium mb-2">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 bg-transparent border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/70 focus:ring-1 focus:ring-white/70 hover:border-white/50 transition-colors resize-none"
+                placeholder="Enter description..."
+              />
+            </div>
 
             {/* Status */}
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Status</InputLabel>
-              <Select
+            <div>
+              <label className="block text-white/70 text-sm font-medium mb-2">Status</label>
+              <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as Task['status'])}
-                label="Status"
-                sx={{
-                  backgroundColor: 'transparent',
-                  color: 'white',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.5)' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.7)' },
-                  '& .MuiSvgIcon-root': { color: 'rgba(255,255,255,0.7)' }
-                }}
+                className="w-full px-3 py-2 bg-transparent border border-white/30 rounded-lg text-white focus:outline-none focus:border-white/70 focus:ring-1 focus:ring-white/70 hover:border-white/50 transition-colors"
               >
-                <MenuItem value="todo">To Do</MenuItem>
-                <MenuItem value="in-progress">In Progress</MenuItem>
-                <MenuItem value="done">Done</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="todo" className="bg-gray-800 text-white">
+                  📋 To Do
+                </option>
+                <option value="in-progress" className="bg-gray-800 text-white">
+                  ⏳ In Progress
+                </option>
+                <option value="done" className="bg-gray-800 text-white">
+                  ✅ Done
+                </option>
+              </select>
+            </div>
           </div>
         )}
 
         {/* Footer */}
         <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-white/10">
-          <Button 
+          <button 
             onClick={handleClose}
-            variant="outlined"
-            className="text-white/70 border-white/30 hover:border-white/50"
+            className="px-4 py-2 text-white/70 border border-white/30 rounded-lg hover:border-white/50 hover:text-white transition-colors"
           >
             Cancel
-          </Button>
+          </button>
           {modalMode === 'edit' && (
-            <Button 
+            <button 
               onClick={handleSave}
-              variant="contained"
               disabled={!task.trim()}
-              startIcon={<SaveOutlined />}
-              className="pro-button-gradient text-white font-medium"
-              sx={{
-                background: 'linear-gradient(135deg, #0F2027 0%, #2C5364 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #0F2027 0%, #2C5364 100%)',
-                  transform: 'scale(1.02)'
-                }
-              }}
+              className="px-4 py-2 pro-button-gradient text-white font-medium rounded-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
             >
-              Save Task
-            </Button>
+              <span>💾</span>
+              <span>Save Task</span>
+            </button>
           )}
         </div>
       </div>
