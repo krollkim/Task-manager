@@ -15,9 +15,11 @@ export const useTasks = () => {
         const loadTasks = async () => {
             try {
                 const fetchedTasks = await getTasks();
+                console.log('📋 Fetched tasks:', fetchedTasks);
+                console.log('📋 Tasks count:', fetchedTasks?.length || 0);
                 setTasks(fetchedTasks);
             } catch (error) {
-                console.error(error.message);
+                console.error('❌ Error loading tasks:', error.message);
             }
         };
         loadTasks();

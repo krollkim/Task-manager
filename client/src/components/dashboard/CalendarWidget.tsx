@@ -1,11 +1,4 @@
 import React, { useState } from 'react';
-import { 
-  ChevronLeftOutlined, 
-  ChevronRightOutlined,
-  EditOutlined,
-  TodayOutlined 
-} from '@mui/icons-material';
-import { IconButton } from '@mui/material';
 
 interface CalendarWidgetProps {
   selectedDate?: Date;
@@ -133,35 +126,33 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <TodayOutlined className="text-white/80" />
+          <span className="text-white/80 text-lg">📅</span>
           <span className="text-white font-medium text-sm">Select date</span>
         </div>
-        <IconButton size="small" className="text-white/60 hover:text-white">
-          <EditOutlined fontSize="small" />
-        </IconButton>
+        <button className="p-1 text-white/60 hover:text-white transition-colors duration-200 rounded">
+          <span className="text-sm">✏️</span>
+        </button>
       </div>
 
       {/* Month/Year Navigation */}
       <div className="flex items-center justify-between mb-4">
-        <IconButton 
+        <button 
           onClick={handlePrevMonth}
-          className="text-white/60 hover:text-white"
-          size="small"
+          className="p-2 text-white/60 hover:text-white transition-colors duration-200 rounded"
         >
-          <ChevronLeftOutlined />
-        </IconButton>
+          <span className="text-lg">‹</span>
+        </button>
         
         <h3 className="text-white font-semibold">
           {monthNames[currentMonth]} {currentYear}
         </h3>
         
-        <IconButton 
+        <button 
           onClick={handleNextMonth}
-          className="text-white/60 hover:text-white"
-          size="small"
+          className="p-2 text-white/60 hover:text-white transition-colors duration-200 rounded"
         >
-          <ChevronRightOutlined />
-        </IconButton>
+          <span className="text-lg">›</span>
+        </button>
       </div>
 
       {/* Day Headers */}

@@ -48,13 +48,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initAuth = async () => {
       try {
         const user = await checkAuthStatus();
+        console.log('🔐 Auth check result:', user);
         if (user) {
+          console.log('✅ User authenticated:', user);
           setUser(user);
           setToken('authenticated'); // מציין שיש אימות, אבל לא חושף את הטוקן
+        } else {
+          console.log('❌ User not authenticated');
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('🚨 Auth initialization error:', error);
       } finally {
+        console.log('🔄 Auth loading finished');
         setIsLoading(false);
       }
     };
@@ -91,7 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Google Login function
   const loginWithGoogle = async (googleToken: string) => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/auth/google`, {
         method: 'POST',
         headers: {
@@ -118,15 +123,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      // Call server to clear cookie
-      await logoutUser();
-      
-      // Clear state
+      // Clear state first for immediate UI update
       setToken(null);
       setUser(null);
+      
+      // Call server to clear cookie
+      await logoutUser();
     } catch (error) {
       console.error('Logout error:', error);
-      // גם אם יש שגיאה, ננקה את ה-state המקומי
+      // Make sure state is cleared even if server call fails
       setToken(null);
       setUser(null);
     }

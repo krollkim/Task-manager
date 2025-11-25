@@ -11,7 +11,7 @@ const GoogleLogin: React.FC<GoogleLoginProps> = ({ onSuccess, onError }) => {
 
   const handleGoogleLogin = async () => {
     try {
-      const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
       console.log('Client ID from env:', clientId);
       
       if (!clientId || clientId === 'YOUR_GOOGLE_CLIENT_ID') {
@@ -145,12 +145,12 @@ const GoogleLogin: React.FC<GoogleLoginProps> = ({ onSuccess, onError }) => {
 
   // Debug info - remove this in production
   const debugInfo = () => {
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     console.log('=== Google OAuth Debug Info ===');
     console.log('Client ID configured:', !!clientId);
     console.log('Client ID value:', clientId);
     console.log('Current origin:', window.location.origin);
-    console.log('Redirect URI:', 'http://localhost:3000/auth-callback.html');
+    console.log('Redirect URI:', 'http://localhost:3001/auth-callback.html');
     console.log('==============================');
   };
 
@@ -183,7 +183,7 @@ const GoogleLogin: React.FC<GoogleLoginProps> = ({ onSuccess, onError }) => {
       </button>
       
       {/* Debug button - remove in production */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <button
           onClick={debugInfo}
           className="mt-2 text-xs text-gray-500 underline"

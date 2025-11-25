@@ -1,15 +1,4 @@
 import React, { useState } from 'react';
-import { 
-  MailOutline, 
-  ChatBubbleOutline, 
-  FolderOutlined, 
-  VideocamOutlined,
-  DashboardOutlined,
-  AssignmentOutlined,
-  SettingsOutlined,
-  LogoutOutlined
-} from '@mui/icons-material';
-import { Menu, MenuItem, Avatar } from '@mui/material';
 
 interface SidebarItem {
   icon: React.ReactNode;
@@ -35,53 +24,54 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentUser, 
   onLogout 
 }) => {
-  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setUserMenuAnchor(event.currentTarget);
+  const handleUserMenuToggle = () => {
+    setUserMenuOpen(!userMenuOpen);
   };
 
   const handleUserMenuClose = () => {
-    setUserMenuAnchor(null);
+    setUserMenuOpen(false);
   };
 
   const handleLogout = () => {
     onLogout?.();
     handleUserMenuClose();
   };
+
   const sidebarItems: SidebarItem[] = [
     {
-      icon: <DashboardOutlined />,
+      icon: <span className="text-xl">📊</span>,
       label: 'Dashboard',
       active: activeItem === 'dashboard',
       onClick: () => onItemClick?.('dashboard')
     },
     {
-      icon: <AssignmentOutlined />,
+      icon: <span className="text-xl">📋</span>,
       label: 'Tasks',
       active: activeItem === 'tasks',
       onClick: () => onItemClick?.('tasks')
     },
     {
-      icon: <MailOutline />,
+      icon: <span className="text-xl">📧</span>,
       label: 'Mail',
       active: activeItem === 'mail',
       onClick: () => onItemClick?.('mail')
     },
     {
-      icon: <ChatBubbleOutline />,
+      icon: <span className="text-xl">💬</span>,
       label: 'Chat',
       active: activeItem === 'chat',
       onClick: () => onItemClick?.('chat')
     },
     {
-      icon: <FolderOutlined />,
+      icon: <span className="text-xl">📁</span>,
       label: 'Spaces',
       active: activeItem === 'spaces',
       onClick: () => onItemClick?.('spaces')
     },
     {
-      icon: <VideocamOutlined />,
+      icon: <span className="text-xl">📹</span>,
       label: 'Meet',
       active: activeItem === 'meet',
       onClick: () => onItemClick?.('meet')
@@ -91,14 +81,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div className="pro-sidebar-gradient pro-rounded-lg pro-shadow-lg h-full w-64 flex flex-col p-6 pro-slide-in relative">
       {/* Mobile Close Button */}
-      {/* {isMobile && onClose && (
+      {isMobile && onClose && (
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-lg"
         >
-          <CloseOutlined />
+          ✕
         </button>
-      )} */}
+      )}
       
       {/* Logo/Brand */}
       <div className="mb-8">
@@ -142,15 +132,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* User Profile Section */}
-      <div className="mt-8 p-4 pro-glass pro-rounded">
+      <div className="mt-8 p-4 pro-glass pro-rounded relative">
         <div className="flex items-center space-x-2 md:space-x-3">
-          <Avatar
-            onClick={handleUserMenuClick}
-            className="pro-card-gradient cursor-pointer hover:scale-105 transition-transform duration-200"
-            sx={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36 }}
+          <button
+            onClick={handleUserMenuToggle}
+            className={`pro-card-gradient cursor-pointer hover:scale-105 transition-transform duration-200 rounded-full flex items-center justify-center text-white font-semibold ${isMobile ? 'w-8 h-8 text-sm' : 'w-9 h-9 text-base'}`}
           >
             {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
-          </Avatar>
+          </button>
           {!isMobile && (
             <div className="text-white">
               <p className="text-sm font-medium">{currentUser?.name || 'User Name'}</p>
@@ -160,33 +149,35 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* User Menu */}
-        <Menu
-          anchorEl={userMenuAnchor}
-          open={Boolean(userMenuAnchor)}
-          onClose={handleUserMenuClose}
-          PaperProps={{
-            className: 'pro-button-gradient pro-rounded border border-white/10',
-            style: { marginTop: 8 }
-          }}
-        >
-          <MenuItem 
-            onClick={handleUserMenuClose}
-            className="text-white hover:bg-white/10"
-          >
-            <SettingsOutlined className="mr-2" fontSize="small" />
-            Settings
-          </MenuItem>
-          <MenuItem 
-            onClick={handleLogout}
-            className="text-red-300 hover:bg-red-500/10"
-          >
-            <LogoutOutlined className="mr-2" fontSize="small" />
-            Logout
-          </MenuItem>
-        </Menu>
+        {userMenuOpen && (
+          <div className="absolute bottom-full left-0 mb-2 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-white/10 shadow-lg z-50 min-w-[150px]">
+            <button 
+              onClick={handleUserMenuClose}
+              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center rounded-t-lg"
+            >
+              <span className="mr-2 text-sm">⚙️</span>
+              Settings
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-full px-4 py-3 text-left text-red-300 hover:bg-red-500/10 transition-colors duration-200 flex items-center rounded-b-lg"
+            >
+              <span className="mr-2 text-sm">🚪</span>
+              Logout
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Click outside to close menu */}
+      {userMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={handleUserMenuClose}
+        />
+      )}
     </div>
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

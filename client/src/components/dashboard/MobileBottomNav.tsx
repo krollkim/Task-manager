@@ -1,12 +1,4 @@
 import React from 'react';
-import { 
-  DashboardOutlined,
-  AssignmentOutlined,
-  MailOutline, 
-  ChatBubbleOutline, 
-  FolderOutlined,
-  PersonOutlined
-} from '@mui/icons-material';
 
 interface MobileBottomNavProps {
   activeItem: string;
@@ -23,27 +15,27 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeItem, onItemCli
   const navItems: NavItem[] = [
     {
       id: 'dashboard',
-      icon: <DashboardOutlined />,
+      icon: <span>📊</span>,
       label: 'Home'
     },
     {
       id: 'tasks', 
-      icon: <AssignmentOutlined />,
+      icon: <span>📋</span>,
       label: 'Tasks'
     },
     {
       id: 'mail',
-      icon: <MailOutline />,
+      icon: <span>📧</span>,
       label: 'Mail'
     },
     {
       id: 'chat',
-      icon: <ChatBubbleOutline />,
+      icon: <span>💬</span>,
       label: 'Chat'
     },
     {
       id: 'spaces',
-      icon: <FolderOutlined />,
+      icon: <span>📁</span>,
       label: 'Files'
     }
   ];
@@ -106,7 +98,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeItem, onItemCli
             "
           >
             <div className="text-xl mb-1 transition-all duration-300 group-hover:scale-105">
-              <PersonOutlined />
+              <span aria-hidden="true">👤</span>
             </div>
             <span className="text-[10px] font-medium leading-none text-white/50 hidden xs:block">
               Profile

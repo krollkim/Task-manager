@@ -1,14 +1,4 @@
 import React from 'react';
-import { 
-  MoreVertOutlined, 
-  EditOutlined, 
-  DeleteOutlined,
-  CheckCircleOutlined,
-  RadioButtonUncheckedOutlined,
-  AccessTimeOutlined,
-  PlayCircleOutlined 
-} from '@mui/icons-material';
-import { IconButton, Chip, Menu, MenuItem, Divider } from '@mui/material';
 import { Task } from '../../types/types';
 
 interface TaskCardProps {
@@ -51,11 +41,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const getStatusIcon = (status: Task['status']) => {
     switch (status) {
       case 'done':
-        return <CheckCircleOutlined className="text-green-400" />;
+        return <span className="text-green-400 text-xl">✅</span>;
       case 'in-progress':
-        return <PlayCircleOutlined className="text-yellow-400" />;
+        return <span className="text-yellow-400 text-xl">⏳</span>;
       default:
-        return <RadioButtonUncheckedOutlined className="text-white/60" />;
+        return <span className="text-white/60 text-xl">⭕</span>;
     }
   };
 
@@ -106,13 +96,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </h3>
         </div>
 
-        <IconButton 
+        <button 
           onClick={handleClick}
-          className="text-white/60 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200"
-          size="small"
+          className="text-white/60 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-full hover:bg-white/10"
         >
-          <MoreVertOutlined />
-        </IconButton>
+          <span className="text-xl">⋮</span>
+        </button>
       </div>
 
       {/* Description */}
@@ -125,80 +114,86 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Footer */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Chip
-            label={task.status.replace('-', ' ')}
-            size="small"
-            className={`
-              ${getStatusColor(task.status)}
-              border font-medium text-xs capitalize transition-all duration-300
-              hover:scale-105 hover:shadow-lg cursor-pointer
-              ${task.status === 'done' ? 'animate-pulse-slow' : ''}
-            `}
-          />
+          <span className={`
+            ${getStatusColor(task.status)}
+            border font-medium text-xs capitalize transition-all duration-300
+            hover:scale-105 hover:shadow-lg cursor-pointer px-2 py-1 rounded-full
+            ${task.status === 'done' ? 'animate-pulse-slow' : ''}
+          `}>
+            {task.status.replace('-', ' ')}
+          </span>
         </div>
 
         <div className="flex items-center space-x-1 text-white/60 text-xs">
-          <AccessTimeOutlined sx={{ fontSize: 14 }} />
+          <span className="text-sm">🕒</span>
           <span>{formatDate(task.createdAt)}</span>
         </div>
       </div>
 
       {/* Action Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        PaperProps={{
-          className: 'bg-slate-800/90 backdrop-blur-sm rounded-xl border border-white/10',
-          style: { marginTop: 8 }
-        }}
-      >
-        {/* Status Options */}
-        <MenuItem 
-          onClick={() => handleStatusChange('todo')}
-          className={`text-white hover:bg-white/10 ${task.status === 'todo' ? 'bg-white/5' : ''}`}
-        >
-          <RadioButtonUncheckedOutlined className="mr-2 text-blue-400" fontSize="small" />
-          To Do
-        </MenuItem>
-        <MenuItem 
-          onClick={() => handleStatusChange('in-progress')}
-          className={`text-white hover:bg-white/10 ${task.status === 'in-progress' ? 'bg-white/5' : ''}`}
-        >
-          <PlayCircleOutlined className="mr-2 text-yellow-400" fontSize="small" />
-          In Progress
-        </MenuItem>
-        <MenuItem 
-          onClick={() => handleStatusChange('done')}
-          className={`text-white hover:bg-white/10 ${task.status === 'done' ? 'bg-white/5' : ''}`}
-        >
-          <CheckCircleOutlined className="mr-2 text-green-400" fontSize="small" />
-          Done
-        </MenuItem>
-        
-        <Divider className="bg-white/10 my-1" />
-        
-        <MenuItem 
-          onClick={() => {
-            onEdit?.(task);
-            handleClose();
-          }}
-          className="text-white hover:bg-white/10"
-        >
-          <EditOutlined className="mr-2" fontSize="small" />
-          Edit Task
-        </MenuItem>
-        <MenuItem 
-          onClick={() => {
-            onDelete?.(task._id);
-            handleClose();
-          }}
-          className="text-red-300 hover:bg-red-500/10"
-        >
-          <DeleteOutlined className="mr-2" fontSize="small" />
-          Delete Task
-        </MenuItem>
-      </Menu>
+      {open && (
+        <div className="absolute top-12 right-4 bg-slate-800/90 backdrop-blur-sm rounded-xl border border-white/10 shadow-lg z-50 min-w-[160px]">
+          {/* Status Options */}
+          <button 
+            onClick={() => handleStatusChange('todo')}
+            className={`w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 rounded-t-xl flex items-center ${
+              task.status === 'todo' ? 'bg-white/5' : ''
+            }`}
+          >
+            <span className="mr-2 text-blue-400">⭕</span>
+            To Do
+          </button>
+          <button 
+            onClick={() => handleStatusChange('in-progress')}
+            className={`w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center ${
+              task.status === 'in-progress' ? 'bg-white/5' : ''
+            }`}
+          >
+            <span className="mr-2 text-yellow-400">⏳</span>
+            In Progress
+          </button>
+          <button 
+            onClick={() => handleStatusChange('done')}
+            className={`w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center ${
+              task.status === 'done' ? 'bg-white/5' : ''
+            }`}
+          >
+            <span className="mr-2 text-green-400">✅</span>
+            Done
+          </button>
+          
+          <div className="border-t border-white/10 my-1" />
+          
+          <button 
+            onClick={() => {
+              onEdit?.(task);
+              handleClose();
+            }}
+            className="w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center"
+          >
+            <span className="mr-2">✏️</span>
+            Edit Task
+          </button>
+          <button 
+            onClick={() => {
+              onDelete?.(task._id);
+              handleClose();
+            }}
+            className="w-full px-4 py-2 text-left text-red-300 hover:bg-red-500/10 transition-colors duration-200 rounded-b-xl flex items-center"
+          >
+            <span className="mr-2">🗑️</span>
+            Delete Task
+          </button>
+        </div>
+      )}
+
+      {/* Click outside to close menu */}
+      {open && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={handleClose}
+        />
+      )}
     </div>
   );
 };
