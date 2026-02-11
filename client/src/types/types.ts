@@ -9,6 +9,10 @@ export interface Task {
     createdAt: string;
     status: 'todo' | 'in-progress' | 'done';
     description: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+    dueDate?: string;
+    estimateMinutes?: number;
+    spentMinutes?: number;
 }
 
 export interface TaskListProps {

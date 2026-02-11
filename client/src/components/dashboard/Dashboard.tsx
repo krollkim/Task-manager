@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import TaskCard from './TaskCard';
+import TaskList from './TaskList';
+import TaskViewToggle from './TaskViewToggle';
 import CalendarWidget from './CalendarWidget';
 import NotesWidget from './NotesWidget';
 import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
 import { useTasks } from '../../hooks/useTasks';
+import { useViewPreference } from '../../hooks/useViewPreference';
 import { Task } from '../../types/types';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +57,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [searchValue, setSearchValue] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  // View preferences (widget-ready)
+  const { viewMode, listDensity, setViewMode, setListDensity } = useViewPreference();
+
   // Close sidebar when switching to mobile
   useEffect(() => {
     if (isMobile) {
@@ -97,6 +103,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const handleTaskStatusChange = (id: string, status: Task['status']) => {
     handleEdit(id, { status });
+  };
+
+  const handleTaskQuickUpdate = (id: string, updates: Partial<Task>) => {
+    handleEdit(id, updates);
   };
 
   const handleAddNewTask = () => {
@@ -154,21 +164,32 @@ const Dashboard: React.FC<DashboardProps> = () => {
             {/* Dashboard Content */}
             <div className={`flex-1 ${isMobile ? 'flex flex-col' : 'flex flex-col lg:grid lg:grid-cols-12'} gap-6 ${isMobile ? '' : 'min-h-0'}`}>
               {/* Tasks Section */}
-              <div className={`${isMobile ? 'w-full' : 'lg:col-span-8'} flex flex-col`}>
+              <div className={`${isMobile ? 'w-full' : 'lg:col-span-8'} flex flex-col ${isMobile ? '' : 'min-h-0'}`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-white text-2xl font-bold">
-                    {activeSection === 'dashboard' ? 'Dashboard Overview' : 
+                    {activeSection === 'dashboard' ? 'Dashboard Overview' :
                      activeSection === 'tasks' ? 'My Tasks' :
                      activeSection === 'mail' ? 'Mail & Messages' :
                      activeSection === 'chat' ? 'Team Chat' :
                      activeSection === 'spaces' ? 'Shared Spaces' :
                      activeSection === 'meet' ? 'Meetings' : 'My Tasks'}
                   </h2>
-                  <span className="text-white/60 text-sm">
-                    {activeSection === 'tasks' || activeSection === 'dashboard' ? 
-                      `${filteredTasks.length} tasks` : 
-                      'Coming Soon'}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    {(activeSection === 'tasks' || activeSection === 'dashboard') && (
+                      <TaskViewToggle
+                        viewMode={viewMode}
+                        onViewChange={setViewMode}
+                        listDensity={listDensity}
+                        onDensityChange={setListDensity}
+                        isMobile={isMobile}
+                      />
+                    )}
+                    <span className="text-white/60 text-sm">
+                      {activeSection === 'tasks' || activeSection === 'dashboard' ?
+                        `${filteredTasks.length} tasks` :
+                        'Coming Soon'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Task Stats */}
@@ -194,10 +215,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 </div>
 
                 {/* Content based on active section */}
-                <div className="flex-1 overflow-y-auto scrollbar-hide">
+                <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
                   {(activeSection === 'tasks' || activeSection === 'dashboard') ? (
                     <>
-                      
                       {/* Tasks content */}
                       {filteredTasks.length === 0 ? (
                         <div className="pro-glass pro-rounded-lg p-8 text-center">
@@ -207,16 +227,34 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           </p>
                         </div>
                       ) : (
-                        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
-                          {filteredTasks.map((task) => (
-                            <TaskCard
-                              key={task._id}
-                              task={task}
+                        <div
+                          key={viewMode}
+                          className="animate-fadeIn motion-reduce:animate-none"
+                        >
+                          {viewMode === 'cards' ? (
+                            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+                              {filteredTasks.map((task) => (
+                                <TaskCard
+                                  key={task._id}
+                                  task={task}
+                                  onEdit={handleTaskEdit}
+                                  onDelete={handleDelete}
+                                  onStatusChange={handleTaskStatusChange}
+                                  onQuickUpdate={handleTaskQuickUpdate}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <TaskList
+                              tasks={filteredTasks}
                               onEdit={handleTaskEdit}
                               onDelete={handleDelete}
                               onStatusChange={handleTaskStatusChange}
+                              onQuickUpdate={handleTaskQuickUpdate}
+                              density={isMobile ? 'compact' : listDensity}
+                              isMobile={isMobile}
                             />
-                          ))}
+                          )}
                         </div>
                       )}
                     </>

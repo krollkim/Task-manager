@@ -13,17 +13,26 @@ const ModalComponent: React.FC<ModalProps> = ({
   const [task, setTask] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<Task['status']>('todo');
+  const [priority, setPriority] = useState<Task['priority']>('medium');
+  const [dueDate, setDueDate] = useState('');
+  const [estimateMinutes, setEstimateMinutes] = useState('');
 
   useEffect(() => {
     if (taskToEdit) {
       setTask(taskToEdit.task || '');
       setDescription(taskToEdit.description || '');
       setStatus(taskToEdit.status || 'todo');
+      setPriority(taskToEdit.priority || 'medium');
+      setDueDate(taskToEdit.dueDate ? taskToEdit.dueDate.split('T')[0] : '');
+      setEstimateMinutes(taskToEdit.estimateMinutes?.toString() || '');
     } else {
       // Reset for new task
       setTask('');
       setDescription('');
       setStatus('todo');
+      setPriority('medium');
+      setDueDate('');
+      setEstimateMinutes('');
     }
   }, [taskToEdit, isOpen]);
 
@@ -33,7 +42,10 @@ const ModalComponent: React.FC<ModalProps> = ({
     const updatedTask: Partial<Task> = {
       task: task.trim(),
       description: description.trim(),
-      status
+      status,
+      priority,
+      dueDate: dueDate || undefined,
+      estimateMinutes: estimateMinutes ? parseInt(estimateMinutes) : undefined
     };
 
     onSave(updatedTask);
@@ -44,6 +56,9 @@ const ModalComponent: React.FC<ModalProps> = ({
     setTask('');
     setDescription('');
     setStatus('todo');
+    setPriority('medium');
+    setDueDate('');
+    setEstimateMinutes('');
     closeModal();
   };
 
@@ -173,6 +188,57 @@ const ModalComponent: React.FC<ModalProps> = ({
                   ✅ Done
                 </option>
               </select>
+            </div>
+
+            {/* Priority */}
+            <div>
+              <label className="block text-white/70 text-sm font-medium mb-2">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Task['priority'])}
+                className="w-full px-3 py-2 bg-transparent border border-white/30 rounded-lg text-white focus:outline-none focus:border-white/70 focus:ring-1 focus:ring-white/70 hover:border-white/50 transition-colors"
+              >
+                <option value="low" className="bg-gray-800 text-white">
+                  🟢 Low
+                </option>
+                <option value="medium" className="bg-gray-800 text-white">
+                  🟡 Medium
+                </option>
+                <option value="high" className="bg-gray-800 text-white">
+                  🟠 High
+                </option>
+                <option value="urgent" className="bg-gray-800 text-white">
+                  🔴 Urgent
+                </option>
+              </select>
+            </div>
+
+            {/* Due Date */}
+            <div>
+              <label className="block text-white/70 text-sm font-medium mb-2">Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 bg-transparent border border-white/30 rounded-lg text-white focus:outline-none focus:border-white/70 focus:ring-1 focus:ring-white/70 hover:border-white/50 transition-colors"
+              />
+            </div>
+
+            {/* Estimate Minutes */}
+            <div>
+              <label className="block text-white/70 text-sm font-medium mb-2">
+                Estimate (minutes)
+                <span className="text-white/40 text-xs ml-2">Optional</span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="15"
+                value={estimateMinutes}
+                onChange={(e) => setEstimateMinutes(e.target.value)}
+                className="w-full px-3 py-2 bg-transparent border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/70 focus:ring-1 focus:ring-white/70 hover:border-white/50 transition-colors"
+                placeholder="e.g., 30, 60, 120..."
+              />
             </div>
           </div>
         )}
