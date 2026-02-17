@@ -23,6 +23,32 @@ export interface TaskListProps {
     modalProps?: ModalProps
 }
 
+export interface Meeting {
+  _id: string;
+  title: string;
+  date: string;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
+}
+
+export interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  pinned: boolean;
+  userId: string;
+  date?: string;
+  createdAt: string;
+}
+
+export interface AgendaData {
+  tasks: Task[];
+  notes: Note[];
+  meetings: Meeting[];
+}
+
 export interface ModalProps {
   isOpen: boolean;
   openModal?: (task: Task, mode: ModalMode) => void;
@@ -30,4 +56,5 @@ export interface ModalProps {
   closeModal: () => void;
   modalMode: ModalMode;
   onSave: (updatedTask: Partial<Task>) => void;
+  defaultDueDate?: string;
 }

@@ -8,9 +8,14 @@ import CalendarWidget from './CalendarWidget';
 import NotesWidget from './NotesWidget';
 import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
+import MeetingModal from '../MeetingModal';
+import NoteModal from '../NoteModal';
 import { useTasks } from '../../hooks/useTasks';
 import { useViewPreference } from '../../hooks/useViewPreference';
+import { useAgenda } from '../../hooks/useAgenda';
 import { Task } from '../../types/types';
+import { addMeeting } from '../../services/MeetingServices';
+import { NoteServices } from '../../services/NoteServices';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -56,6 +61,11 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [activeSection, setActiveSection] = useState('tasks');
   const [searchValue, setSearchValue] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [notesRefreshKey, setNotesRefreshKey] = useState(0);
+
+  const { agenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate);
 
   // View preferences (widget-ready)
   const { viewMode, listDensity, setViewMode, setListDensity } = useViewPreference();
@@ -121,11 +131,57 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const handleModalSave = async (updatedTask: Partial<Task>) => {
     if (taskToEdit) {
-      // Edit existing task
       await handleEdit(taskToEdit._id, updatedTask);
     } else {
-      // Add new task
       await handleAddTask(updatedTask as Omit<Task, '_id' | 'createdAt'>);
+    }
+    refetchAgenda();
+  };
+
+  const handleQuickAddTask = () => {
+    openModal(null as any, 'edit');
+  };
+
+  const handleQuickAddNote = () => {
+    setNoteModalOpen(true);
+  };
+
+  const handleQuickAddMeeting = () => {
+    setMeetingModalOpen(true);
+  };
+
+  const formatLocalDate = (date: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  };
+
+  const handleMeetingSave = async (meetingData: {
+    title: string;
+    date: string;
+    description?: string;
+    startTime?: string;
+    endTime?: string;
+  }) => {
+    try {
+      await addMeeting(meetingData);
+      refetchAgenda();
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+    }
+  };
+
+  const handleNoteSave = async (noteData: {
+    title: string;
+    content?: string;
+    pinned?: boolean;
+    date?: string;
+  }) => {
+    try {
+      await NoteServices.createNote(noteData);
+      refetchAgenda();
+      setNotesRefreshKey((k) => k + 1);
+    } catch (error) {
+      console.error('Error creating note:', error);
     }
   };
 
@@ -279,8 +335,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
                     className="flex-shrink-0"
+                    agenda={agenda}
+                    agendaLoading={agendaLoading}
+                    agendaEmpty={agendaEmpty}
+                    onAddTask={handleQuickAddTask}
+                    onAddNote={handleQuickAddNote}
+                    onAddMeeting={handleQuickAddMeeting}
                   />
-                  <NotesWidget className="flex-1" />
+                  <NotesWidget className="flex-1" refreshKey={notesRefreshKey} />
                 </div>
               )}
             </div>
@@ -292,8 +354,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
                   className="w-full"
+                  agenda={agenda}
+                  agendaLoading={agendaLoading}
+                  agendaEmpty={agendaEmpty}
+                  onAddTask={handleQuickAddTask}
+                  onAddNote={handleQuickAddNote}
+                  onAddMeeting={handleQuickAddMeeting}
                 />
-                <NotesWidget className="w-full min-h-[300px]" />
+                <NotesWidget className="w-full min-h-[300px]" refreshKey={notesRefreshKey} />
               </div>
             )}
           </div>
@@ -314,6 +382,23 @@ const Dashboard: React.FC<DashboardProps> = () => {
           closeModal={closeModal}
           modalMode={modalMode}
           onSave={handleModalSave}
+          defaultDueDate={formatLocalDate(selectedDate)}
+        />
+
+        {/* Meeting Modal */}
+        <MeetingModal
+          isOpen={meetingModalOpen}
+          closeModal={() => setMeetingModalOpen(false)}
+          onSave={handleMeetingSave}
+          prefillDate={selectedDate}
+        />
+
+        {/* Note Modal */}
+        <NoteModal
+          isOpen={noteModalOpen}
+          closeModal={() => setNoteModalOpen(false)}
+          onSave={handleNoteSave}
+          prefillDate={selectedDate}
         />
 
         {/* Mobile Sidebar Overlay */}
