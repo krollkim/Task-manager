@@ -39,12 +39,16 @@ router.post('/', auth, async (req, res) => {
             return res.status(400).json({ error: 'Task is required and must be a non-empty string.' });
         }
 
-        const taskData = { 
+        const taskData = {
             task: task.task.trim(),
             description: task.description || '',
             status: task.status || 'todo',
+            priority: task.priority || 'medium',
             userId: req.user.id
         };
+
+        if (task.dueDate) taskData.dueDate = task.dueDate;
+        if (task.estimateMinutes !== undefined) taskData.estimateMinutes = task.estimateMinutes;
 
         const newTask = await createTask(taskData);
         return res.send(newTask);

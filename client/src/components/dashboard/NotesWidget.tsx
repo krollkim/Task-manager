@@ -7,14 +7,22 @@ import { useNotes } from '../../hooks/useNotes';
 interface NotesWidgetProps {
   className?: string;
   showRecentTasks?: boolean;
+  refreshKey?: number;
 }
 
-const NotesWidget: React.FC<NotesWidgetProps> = ({ 
+const NotesWidget: React.FC<NotesWidgetProps> = ({
   className = '',
-  showRecentTasks = false 
+  showRecentTasks = false,
+  refreshKey = 0
 }) => {
   // Use the notes hook for API integration
-  const { notes, createNote, updateNote, deleteNote, togglePin } = useNotes();
+  const { notes, createNote, updateNote, deleteNote, togglePin, refetch } = useNotes();
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+      refetch();
+    }
+  }, [refreshKey]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
