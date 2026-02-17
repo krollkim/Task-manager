@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AgendaData } from '../../types/types';
+import { AgendaData, Meeting, Task, Note } from '../../types/types';
 
 interface CalendarWidgetProps {
   selectedDate?: Date;
@@ -11,6 +11,9 @@ interface CalendarWidgetProps {
   onAddTask?: () => void;
   onAddNote?: () => void;
   onAddMeeting?: () => void;
+  onMeetingClick?: (meeting: Meeting) => void;
+  onTaskClick?: (task: Task) => void;
+  onNoteClick?: (note: Note) => void;
 }
 
 const CalendarWidget: React.FC<CalendarWidgetProps> = ({
@@ -22,7 +25,10 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   agendaEmpty,
   onAddTask,
   onAddNote,
-  onAddMeeting
+  onAddMeeting,
+  onMeetingClick,
+  onTaskClick,
+  onNoteClick
 }) => {
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
@@ -228,7 +234,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           <div className="space-y-2">
             {/* Meetings */}
             {agenda?.meetings.map((meeting) => (
-              <div key={meeting._id} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm">
+              <div key={meeting._id} onClick={() => onMeetingClick?.(meeting)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
                 <span className="text-purple-300 mr-2 text-xs">📅</span>
                 <span className="text-white/60 text-xs mr-2 whitespace-nowrap">
                   {meeting.startTime || '--:--'}
@@ -239,7 +245,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
             {/* Tasks */}
             {agenda?.tasks.map((task) => (
-              <div key={task._id} className="flex items-center justify-between p-2 pro-card-gradient pro-rounded text-sm">
+              <div key={task._id} onClick={() => onTaskClick?.(task)} className="flex items-center justify-between p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
                 <div className="flex items-center min-w-0">
                   <span className="text-blue-300 mr-2 text-xs">
                     {task.status === 'done' ? '✅' : task.status === 'in-progress' ? '⏳' : '📋'}
@@ -261,7 +267,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
             {/* Notes */}
             {agenda?.notes.map((note) => (
-              <div key={note._id} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm">
+              <div key={note._id} onClick={() => onNoteClick?.(note)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
                 <span className="text-yellow-300 mr-2 text-xs">📝</span>
                 <span className="text-white text-xs truncate">{note.title}</span>
               </div>
