@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
+import { AgendaData } from '../../types/types';
 
 interface CalendarWidgetProps {
   selectedDate?: Date;
   onDateSelect?: (date: Date) => void;
   className?: string;
+  agenda?: AgendaData;
+  agendaLoading?: boolean;
+  agendaEmpty?: boolean;
+  onAddTask?: () => void;
+  onAddNote?: () => void;
+  onAddMeeting?: () => void;
 }
 
 const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   selectedDate = new Date(),
   onDateSelect,
-  className = ''
+  className = '',
+  agenda,
+  agendaLoading,
+  agendaEmpty,
+  onAddTask,
+  onAddNote,
+  onAddMeeting
 }) => {
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
@@ -54,7 +67,6 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   };
 
   const handleCancel = () => {
-    // Reset to today's date
     const today = new Date();
     setCurrentMonth(today.getMonth());
     setCurrentYear(today.getFullYear());
@@ -62,8 +74,6 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   };
 
   const handleOK = () => {
-    // Maybe close a modal or confirm the selection
-    // For now, just ensure the selected date is confirmed
     onDateSelect?.(selectedDate);
   };
 
@@ -89,14 +99,12 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
     const days = [];
 
-    // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(
         <div key={`empty-${i}`} className="h-8 w-8"></div>
       );
     }
 
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(
         <button
@@ -105,8 +113,8 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           className={`
             h-8 w-8 rounded-lg text-sm font-medium transition-all duration-200
             hover:scale-110 hover:bg-white/20
-            ${isToday(day) 
-              ? 'bg-white/30 text-white font-bold' 
+            ${isToday(day)
+              ? 'bg-white/30 text-white font-bold'
               : isSelectedDate(day)
               ? 'pro-button-gradient text-white'
               : 'text-white/80 hover:text-white'
@@ -136,18 +144,18 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
       {/* Month/Year Navigation */}
       <div className="flex items-center justify-between mb-4">
-        <button 
+        <button
           onClick={handlePrevMonth}
           className="p-2 text-white/60 hover:text-white transition-colors duration-200 rounded"
         >
           <span className="text-lg">‹</span>
         </button>
-        
+
         <h3 className="text-white font-semibold">
           {monthNames[currentMonth]} {currentYear}
         </h3>
-        
-        <button 
+
+        <button
           onClick={handleNextMonth}
           className="p-2 text-white/60 hover:text-white transition-colors duration-200 rounded"
         >
@@ -180,15 +188,97 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
         </p>
       </div>
 
+      {/* Quick-Add Row */}
+      <div className="flex items-center justify-between mt-3 p-2 pro-card-gradient pro-rounded">
+        <span className="text-white/60 text-xs font-medium ml-1">Quick add:</span>
+        <div className="flex space-x-2">
+          <button
+            onClick={onAddTask}
+            className="px-2 py-1 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            + Task
+          </button>
+          <button
+            onClick={onAddNote}
+            className="px-2 py-1 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            + Note
+          </button>
+          <button
+            onClick={onAddMeeting}
+            className="px-2 py-1 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            + Meeting
+          </button>
+        </div>
+      </div>
+
+      {/* Agenda List */}
+      <div className="mt-3 max-h-48 overflow-y-auto scrollbar-hide pb-3">
+        {agendaLoading ? (
+          <div className="text-center py-4">
+            <span className="text-white/40 text-sm">Loading...</span>
+          </div>
+        ) : agendaEmpty ? (
+          <div className="text-center py-4">
+            <p className="text-white/50 text-sm">Nothing scheduled</p>
+            <p className="text-white/30 text-xs mt-1">Use the buttons above to add items</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {/* Meetings */}
+            {agenda?.meetings.map((meeting) => (
+              <div key={meeting._id} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm">
+                <span className="text-purple-300 mr-2 text-xs">📅</span>
+                <span className="text-white/60 text-xs mr-2 whitespace-nowrap">
+                  {meeting.startTime || '--:--'}
+                </span>
+                <span className="text-white text-xs truncate">{meeting.title}</span>
+              </div>
+            ))}
+
+            {/* Tasks */}
+            {agenda?.tasks.map((task) => (
+              <div key={task._id} className="flex items-center justify-between p-2 pro-card-gradient pro-rounded text-sm">
+                <div className="flex items-center min-w-0">
+                  <span className="text-blue-300 mr-2 text-xs">
+                    {task.status === 'done' ? '✅' : task.status === 'in-progress' ? '⏳' : '📋'}
+                  </span>
+                  <span className="text-white text-xs truncate">{task.task}</span>
+                </div>
+                {task.priority && (
+                  <span className={`text-xs ml-2 px-1.5 py-0.5 rounded-full whitespace-nowrap ${
+                    task.priority === 'urgent' ? 'bg-red-600/20 text-red-400' :
+                    task.priority === 'high' ? 'bg-orange-600/20 text-orange-400' :
+                    task.priority === 'medium' ? 'bg-yellow-600/20 text-yellow-400' :
+                    'bg-green-600/20 text-green-400'
+                  }`}>
+                    {task.priority}
+                  </span>
+                )}
+              </div>
+            ))}
+
+            {/* Notes */}
+            {agenda?.notes.map((note) => (
+              <div key={note._id} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm">
+                <span className="text-yellow-300 mr-2 text-xs">📝</span>
+                <span className="text-white text-xs truncate">{note.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Action Buttons */}
       <div className="flex space-x-2 mt-4">
-        <button 
+        <button
           onClick={handleCancel}
           className="flex-1 py-2 text-white/60 text-sm hover:text-white transition-colors duration-200"
         >
           Today
         </button>
-        <button 
+        <button
           onClick={handleOK}
           className="flex-1 py-2 pro-button-gradient pro-rounded text-white text-sm font-medium hover:scale-105 transition-transform duration-200"
         >
@@ -199,4 +289,4 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   );
 };
 
-export default CalendarWidget; 
+export default CalendarWidget;

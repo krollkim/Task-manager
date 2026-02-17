@@ -3,12 +3,13 @@ import Modal from 'react-modal';
 import { Task, ModalProps } from '../types/types';
 import '../App.css';
 
-const ModalComponent: React.FC<ModalProps> = ({ 
-  isOpen, 
-  taskToEdit, 
-  closeModal, 
+const ModalComponent: React.FC<ModalProps> = ({
+  isOpen,
+  taskToEdit,
+  closeModal,
   modalMode,
-  onSave 
+  onSave,
+  defaultDueDate
 }) => {
   const [task, setTask] = useState('');
   const [description, setDescription] = useState('');
@@ -31,10 +32,10 @@ const ModalComponent: React.FC<ModalProps> = ({
       setDescription('');
       setStatus('todo');
       setPriority('medium');
-      setDueDate('');
+      setDueDate(defaultDueDate || '');
       setEstimateMinutes('');
     }
-  }, [taskToEdit, isOpen]);
+  }, [taskToEdit, isOpen, defaultDueDate]);
 
   const handleSave = () => {
     if (!task.trim()) return;
