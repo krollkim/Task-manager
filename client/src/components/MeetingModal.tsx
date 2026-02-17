@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
+import { Meeting } from '../types/types';
 import '../App.css';
 
 interface MeetingModalProps {
@@ -13,6 +14,8 @@ interface MeetingModalProps {
         endTime?: string;
     }) => void;
     prefillDate?: Date;
+    meetingToEdit?: Meeting | null;
+    onDelete?: (meetingId: string) => void;
 }
 
 const formatLocalDate = (date: Date) => {
@@ -24,7 +27,9 @@ const MeetingModal: React.FC<MeetingModalProps> = ({
     isOpen,
     closeModal,
     onSave,
-    prefillDate
+    prefillDate,
+    meetingToEdit,
+    onDelete
 }) => {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
@@ -33,7 +38,13 @@ const MeetingModal: React.FC<MeetingModalProps> = ({
     const [endTime, setEndTime] = useState('');
 
     useEffect(() => {
-        if (isOpen && prefillDate) {
+        if (isOpen && meetingToEdit) {
+            setTitle(meetingToEdit.title);
+            setDate(meetingToEdit.date.split('T')[0]);
+            setDescription(meetingToEdit.description || '');
+            setStartTime(meetingToEdit.startTime || '');
+            setEndTime(meetingToEdit.endTime || '');
+        } else if (isOpen && prefillDate) {
             setDate(formatLocalDate(prefillDate));
         }
         if (!isOpen) {
@@ -43,7 +54,7 @@ const MeetingModal: React.FC<MeetingModalProps> = ({
             setStartTime('');
             setEndTime('');
         }
-    }, [isOpen, prefillDate]);
+    }, [isOpen, prefillDate, meetingToEdit]);
 
     const handleSave = () => {
         if (!title.trim() || !date) return;
@@ -61,7 +72,7 @@ const MeetingModal: React.FC<MeetingModalProps> = ({
         <Modal
             isOpen={isOpen}
             onRequestClose={closeModal}
-            contentLabel="New Meeting"
+            contentLabel={meetingToEdit ? 'Edit Meeting' : 'New Meeting'}
             className="ReactModal__Content"
             overlayClassName="ReactModal__Overlay"
             ariaHideApp={false}
@@ -74,7 +85,7 @@ const MeetingModal: React.FC<MeetingModalProps> = ({
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-2">
                         <span className="text-white/80 text-xl">📅</span>
-                        <h2 className="text-xl font-semibold text-white">New Meeting</h2>
+                        <h2 className="text-xl font-semibold text-white">{meetingToEdit ? 'Edit Meeting' : 'New Meeting'}</h2>
                     </div>
                     <button onClick={closeModal} className="text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
                         <span className="text-xl">✕</span>
@@ -141,21 +152,32 @@ const MeetingModal: React.FC<MeetingModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-white/10">
-                    <button
-                        onClick={closeModal}
-                        className="px-4 py-2 text-white/70 border border-white/30 rounded-lg hover:border-white/50 hover:text-white transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={!title.trim() || !date}
-                        className="px-4 py-2 pro-button-gradient text-white font-medium rounded-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
-                    >
-                        <span>📅</span>
-                        <span>Save Meeting</span>
-                    </button>
+                <div className={`flex ${meetingToEdit ? 'justify-between' : 'justify-end'} mt-6 pt-4 border-t border-white/10`}>
+                    {meetingToEdit && onDelete && (
+                        <button
+                            onClick={() => { onDelete(meetingToEdit._id); closeModal(); }}
+                            className="px-4 py-2 text-red-400 border border-red-400/30 rounded-lg hover:bg-red-500/10 hover:border-red-400/50 transition-colors flex items-center space-x-2"
+                        >
+                            <span>🗑️</span>
+                            <span>Delete</span>
+                        </button>
+                    )}
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={closeModal}
+                            className="px-4 py-2 text-white/70 border border-white/30 rounded-lg hover:border-white/50 hover:text-white transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={!title.trim() || !date}
+                            className="px-4 py-2 pro-button-gradient text-white font-medium rounded-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
+                        >
+                            <span>📅</span>
+                            <span>{meetingToEdit ? 'Update Meeting' : 'Save Meeting'}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </Modal>

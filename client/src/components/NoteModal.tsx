@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
+import { Note } from '../types/types';
 import '../App.css';
 
 interface NoteModalProps {
@@ -12,6 +13,8 @@ interface NoteModalProps {
         date?: string;
     }) => void;
     prefillDate?: Date;
+    noteToEdit?: Note | null;
+    onDelete?: (noteId: string) => void;
 }
 
 const formatLocalDate = (date: Date) => {
@@ -23,17 +26,22 @@ const NoteModal: React.FC<NoteModalProps> = ({
     isOpen,
     closeModal,
     onSave,
-    prefillDate
+    prefillDate,
+    noteToEdit,
+    onDelete
 }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
 
     useEffect(() => {
-        if (!isOpen) {
+        if (isOpen && noteToEdit) {
+            setTitle(noteToEdit.title);
+            setContent(noteToEdit.content || '');
+        } else if (!isOpen) {
             setTitle('');
             setContent('');
         }
-    }, [isOpen]);
+    }, [isOpen, noteToEdit]);
 
     const handleSave = () => {
         if (!title.trim()) return;
@@ -50,7 +58,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
         <Modal
             isOpen={isOpen}
             onRequestClose={closeModal}
-            contentLabel="New Note"
+            contentLabel={noteToEdit ? 'Edit Note' : 'New Note'}
             className="ReactModal__Content"
             overlayClassName="ReactModal__Overlay"
             ariaHideApp={false}
@@ -63,7 +71,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-2">
                         <span className="text-white/80 text-xl">📝</span>
-                        <h2 className="text-xl font-semibold text-white">New Note</h2>
+                        <h2 className="text-xl font-semibold text-white">{noteToEdit ? 'Edit Note' : 'New Note'}</h2>
                     </div>
                     <button onClick={closeModal} className="text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
                         <span className="text-xl">✕</span>
@@ -97,21 +105,32 @@ const NoteModal: React.FC<NoteModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-white/10">
-                    <button
-                        onClick={closeModal}
-                        className="px-4 py-2 text-white/70 border border-white/30 rounded-lg hover:border-white/50 hover:text-white transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={!title.trim()}
-                        className="px-4 py-2 pro-button-gradient text-white font-medium rounded-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
-                    >
-                        <span>📝</span>
-                        <span>Save Note</span>
-                    </button>
+                <div className={`flex ${noteToEdit ? 'justify-between' : 'justify-end'} mt-6 pt-4 border-t border-white/10`}>
+                    {noteToEdit && onDelete && (
+                        <button
+                            onClick={() => { onDelete(noteToEdit._id); closeModal(); }}
+                            className="px-4 py-2 text-red-400 border border-red-400/30 rounded-lg hover:bg-red-500/10 hover:border-red-400/50 transition-colors flex items-center space-x-2"
+                        >
+                            <span>🗑️</span>
+                            <span>Delete</span>
+                        </button>
+                    )}
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={closeModal}
+                            className="px-4 py-2 text-white/70 border border-white/30 rounded-lg hover:border-white/50 hover:text-white transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={!title.trim()}
+                            className="px-4 py-2 pro-button-gradient text-white font-medium rounded-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
+                        >
+                            <span>📝</span>
+                            <span>{noteToEdit ? 'Update Note' : 'Save Note'}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </Modal>
