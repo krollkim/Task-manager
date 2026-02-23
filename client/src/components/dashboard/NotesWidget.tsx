@@ -203,14 +203,14 @@ const NotesWidget: React.FC<NotesWidgetProps> = ({
   };
 
   // Sort notes by pinned status first, then by creation date
-  const sortedNotes = notes.sort((a, b) => {
+  const sortedNotes = [...notes].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
     return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
   return (
-    <div className={`pro-glass pro-rounded-lg pro-shadow p-4 ${className}`}>
+    <div className={`pro-glass pro-rounded-lg pro-shadow p-4 flex flex-col min-h-0 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-semibold text-lg">
@@ -315,7 +315,7 @@ const NotesWidget: React.FC<NotesWidgetProps> = ({
       {/* Notes List */}
       <div
         ref={notesListRef}
-        className="space-y-3 max-h-64 md:max-h-80 overflow-y-auto scrollbar-hide relative pb-4 md:pb-8 overscroll-contain"
+        className="space-y-3 flex-1 min-h-0 overflow-y-auto scrollbar-hide relative pb-4 overscroll-contain"
       >
         {sortedNotes.length === 0 ? (
           <div className="text-center py-8">
@@ -326,7 +326,7 @@ const NotesWidget: React.FC<NotesWidgetProps> = ({
           sortedNotes.map((note, index) => (
             <div
               key={note._id}
-              className={`p-3 pro-card-gradient pro-rounded group transition-all duration-300 cursor-pointer relative ${
+              className={`p-2 pro-card-gradient pro-rounded group transition-all duration-300 cursor-pointer relative ${
                 menuOpen && selectedNoteId === note._id ? '' : 'hover:scale-[1.01]'
               }`}
             >
