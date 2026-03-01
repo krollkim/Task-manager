@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AgendaData, Meeting, Task, Note } from '../../types/types';
+import { AgendaData, AgendaView, WeekAgendaDay, Meeting, Task, Note } from '../../types/types';
 
 interface CalendarWidgetProps {
   selectedDate?: Date;
@@ -8,6 +8,9 @@ interface CalendarWidgetProps {
   agenda?: AgendaData;
   agendaLoading?: boolean;
   agendaEmpty?: boolean;
+  agendaView?: AgendaView;
+  onAgendaViewChange?: (view: AgendaView) => void;
+  weekAgenda?: WeekAgendaDay[];
   onAddTask?: () => void;
   onAddNote?: () => void;
   onAddMeeting?: () => void;
@@ -23,6 +26,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   agenda,
   agendaLoading,
   agendaEmpty,
+  agendaView = 'day',
+  onAgendaViewChange,
+  weekAgenda = [],
   onAddTask,
   onAddNote,
   onAddMeeting,
@@ -135,6 +141,44 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     return days;
   };
 
+  const renderAgendaItems = (dayAgenda: AgendaData) => (
+    <div className="space-y-1">
+      {dayAgenda.meetings.map((meeting) => (
+        <div key={meeting._id} onClick={() => onMeetingClick?.(meeting)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+          <span className="text-purple-300 mr-2 text-xs">📅</span>
+          <span className="text-white/60 text-xs mr-2 whitespace-nowrap">{meeting.startTime || '--:--'}</span>
+          <span className="text-white text-xs truncate">{meeting.title}</span>
+        </div>
+      ))}
+      {dayAgenda.tasks.map((task) => (
+        <div key={task._id} onClick={() => onTaskClick?.(task)} className="flex items-center justify-between p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+          <div className="flex items-center min-w-0">
+            <span className="text-blue-300 mr-2 text-xs">
+              {task.status === 'done' ? '✅' : task.status === 'in-progress' ? '⏳' : '📋'}
+            </span>
+            <span className="text-white text-xs truncate">{task.task}</span>
+          </div>
+          {task.priority && (
+            <span className={`text-xs ml-2 px-1.5 py-0.5 rounded-full whitespace-nowrap ${
+              task.priority === 'urgent' ? 'bg-red-600/20 text-red-400' :
+              task.priority === 'high' ? 'bg-orange-600/20 text-orange-400' :
+              task.priority === 'medium' ? 'bg-yellow-600/20 text-yellow-400' :
+              'bg-green-600/20 text-green-400'
+            }`}>
+              {task.priority}
+            </span>
+          )}
+        </div>
+      ))}
+      {dayAgenda.notes.map((note) => (
+        <div key={note._id} onClick={() => onNoteClick?.(note)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+          <span className="text-yellow-300 mr-2 text-xs">📝</span>
+          <span className="text-white text-xs truncate">{note.title}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className={`pro-glass pro-rounded-lg pro-shadow p-4 ${className}`}>
       {/* Header */}
@@ -219,8 +263,32 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
         </div>
       </div>
 
+      {/* Day / Week Toggle */}
+      <div className="flex items-center space-x-1 mt-3 mb-1">
+        <button
+          onClick={() => onAgendaViewChange?.('day')}
+          className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+            agendaView === 'day'
+              ? 'bg-white/20 text-white font-medium'
+              : 'text-white/50 hover:text-white hover:bg-white/10'
+          }`}
+        >
+          Day
+        </button>
+        <button
+          onClick={() => onAgendaViewChange?.('week')}
+          className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+            agendaView === 'week'
+              ? 'bg-white/20 text-white font-medium'
+              : 'text-white/50 hover:text-white hover:bg-white/10'
+          }`}
+        >
+          Week
+        </button>
+      </div>
+
       {/* Agenda List */}
-      <div className="mt-3 max-h-48 overflow-y-auto scrollbar-hide pb-3">
+      <div className="mt-1 max-h-48 overflow-y-auto scrollbar-hide pb-3">
         {agendaLoading ? (
           <div className="text-center py-4">
             <span className="text-white/40 text-sm">Loading...</span>
@@ -230,48 +298,25 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
             <p className="text-white/50 text-sm">Nothing scheduled</p>
             <p className="text-white/30 text-xs mt-1">Use the buttons above to add items</p>
           </div>
+        ) : agendaView === 'week' ? (
+          <div className="space-y-3">
+            {weekAgenda.map((day) => {
+              const dayEmpty =
+                day.agenda.meetings.length === 0 &&
+                day.agenda.tasks.length === 0 &&
+                day.agenda.notes.length === 0;
+              if (dayEmpty) return null;
+              return (
+                <div key={day.label}>
+                  <p className="text-white/40 text-xs font-medium mb-1 uppercase tracking-wide">{day.label}</p>
+                  {renderAgendaItems(day.agenda)}
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="space-y-2">
-            {/* Meetings */}
-            {agenda?.meetings.map((meeting) => (
-              <div key={meeting._id} onClick={() => onMeetingClick?.(meeting)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
-                <span className="text-purple-300 mr-2 text-xs">📅</span>
-                <span className="text-white/60 text-xs mr-2 whitespace-nowrap">
-                  {meeting.startTime || '--:--'}
-                </span>
-                <span className="text-white text-xs truncate">{meeting.title}</span>
-              </div>
-            ))}
-
-            {/* Tasks */}
-            {agenda?.tasks.map((task) => (
-              <div key={task._id} onClick={() => onTaskClick?.(task)} className="flex items-center justify-between p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
-                <div className="flex items-center min-w-0">
-                  <span className="text-blue-300 mr-2 text-xs">
-                    {task.status === 'done' ? '✅' : task.status === 'in-progress' ? '⏳' : '📋'}
-                  </span>
-                  <span className="text-white text-xs truncate">{task.task}</span>
-                </div>
-                {task.priority && (
-                  <span className={`text-xs ml-2 px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                    task.priority === 'urgent' ? 'bg-red-600/20 text-red-400' :
-                    task.priority === 'high' ? 'bg-orange-600/20 text-orange-400' :
-                    task.priority === 'medium' ? 'bg-yellow-600/20 text-yellow-400' :
-                    'bg-green-600/20 text-green-400'
-                  }`}>
-                    {task.priority}
-                  </span>
-                )}
-              </div>
-            ))}
-
-            {/* Notes */}
-            {agenda?.notes.map((note) => (
-              <div key={note._id} onClick={() => onNoteClick?.(note)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
-                <span className="text-yellow-300 mr-2 text-xs">📝</span>
-                <span className="text-white text-xs truncate">{note.title}</span>
-              </div>
-            ))}
+            {renderAgendaItems(agenda ?? { meetings: [], tasks: [], notes: [] })}
           </div>
         )}
       </div>
