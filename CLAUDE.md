@@ -40,28 +40,28 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
   - Meetings: by startTime, no-time → end
   - Tasks: by priority (urgent → high → medium → low → none)
   - Notes: by createdAt descending
-- [x] **B4b** — `useAgenda` week logic (not yet committed)
+- [x] **B4b** — `useAgenda` week logic ✅ (committed & pushed)
   - `AgendaView = 'day' | 'week'` type
   - `WeekAgendaDay { date, label, agenda }` type
   - `getWeekDays()` → Mon–Sun array
   - `fetchWeekAgenda()` → Promise.all over 7 days, each day sorted
   - `weekAgenda` state, `isEmpty` and `refetch` handle both modes
-- [x] **B4c** — CalendarWidget week view UI (done, built, ready to commit)
+- [x] **B4c** — CalendarWidget week view UI ✅ (committed & pushed)
   - Added Day/Week toggle buttons above agenda list
   - Destructured `agendaView`, `onAgendaViewChange`, `weekAgenda` in component
   - Extracted `renderAgendaItems(AgendaData)` helper (reuses all click handlers)
-  - Week view: grouped Mon–Sun sections, skips empty days
+  - Week view: grouped Mon–Sun sections, empty days are skipped (only days with items shown)
   - Day view: unchanged flat list using `renderAgendaItems`
   - Dashboard: added `agendaView` state, updated `useAgenda` call, wired both CalendarWidget instances
 
 ---
 
 ## Constraints (all steps)
-- No changes to `Dashboard.tsx`
 - No backend changes after B1
-- No layout/responsive changes beyond what the feature requires
+- No layout/responsive changes (breakpoints/grid/overflow) as part of B4
 - Keep API contract as-is
 - Do NOT modify `sortAgenda` in `useAgenda.tsx`
+- `Dashboard.tsx` changes allowed ONLY for wiring state/props (no layout tweaks)
 
 ---
 
@@ -70,13 +70,15 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 |---|---|
 | `server/models/Meeting.js` | B1 done |
 | `server/routes/agenda.js` | B1 done |
-| `client/src/types/types.ts` | B4b done (uncommitted) |
-| `client/src/hooks/useAgenda.tsx` | B4b done (uncommitted) |
-| `client/src/components/dashboard/CalendarWidget.tsx` | B4c pending |
+| `client/src/types/types.ts` | B4b done (committed & pushed) |
+| `client/src/hooks/useAgenda.tsx` | B4b done (committed & pushed) |
+| `client/src/components/dashboard/CalendarWidget.tsx` | B4c done (committed & pushed) |
+| `client/src/components/dashboard/Dashboard.tsx` | B4c wiring done (committed & pushed) |
 | `client/src/components/modals/MeetingModal.tsx` | B3 done |
 | `client/src/components/modals/NoteModal.tsx` | B3 done |
 
 ---
 
 ## Next Step
-**Commit B4b** — all client-side week view work is complete and built clean.
+**B4 is fully complete, pushed, and smoke-tested.** All calendar hub features (B1–B4) are done and verified.
+→ Ready to open PR: `feature/calandar-b4` → `development`
