@@ -84,7 +84,22 @@ const editTask = async (taskId, updatedData, userId) => {
       console.log("Task found:", editedTask);
       editedTask.task = updatedData.task || editedTask.task;
       editedTask.status = updatedData.status || editedTask.status;
-      editedTask.description = updatedData.description || editedTask.description;
+      editedTask.description = updatedData.description !== undefined ? updatedData.description : editedTask.description;
+
+      // Update new fields: priority, dueDate, estimateMinutes, spentMinutes
+      if (updatedData.priority !== undefined) {
+        editedTask.priority = updatedData.priority;
+      }
+      if (updatedData.dueDate !== undefined) {
+        editedTask.dueDate = updatedData.dueDate;
+      }
+      if (updatedData.estimateMinutes !== undefined) {
+        editedTask.estimateMinutes = updatedData.estimateMinutes;
+      }
+      if (updatedData.spentMinutes !== undefined) {
+        editedTask.spentMinutes = updatedData.spentMinutes;
+      }
+
       await editedTask.save();
       return editedTask.toObject();
     } catch (error) {
