@@ -76,6 +76,7 @@ const editNote = async (noteId, updatedData, userId) => {
       editedNote.title = updatedData.title || editedNote.title;
       editedNote.content = updatedData.content || editedNote.content;
       editedNote.pinned = updatedData.pinned !== undefined ? updatedData.pinned : editedNote.pinned;
+      if (updatedData.date !== undefined) editedNote.date = updatedData.date;
       await editedNote.save();
       return editedNote.toObject();
     } catch (error) {
