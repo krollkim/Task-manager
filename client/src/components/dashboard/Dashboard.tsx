@@ -2,12 +2,20 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import TaskCard from './TaskCard';
+import TaskList from './TaskList';
+import TaskViewToggle from './TaskViewToggle';
 import CalendarWidget from './CalendarWidget';
 import NotesWidget from './NotesWidget';
 import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
+import MeetingModal from '../MeetingModal';
+import NoteModal from '../NoteModal';
 import { useTasks } from '../../hooks/useTasks';
-import { Task } from '../../types/types';
+import { useViewPreference } from '../../hooks/useViewPreference';
+import { useAgenda } from '../../hooks/useAgenda';
+import { Task, Meeting, Note, AgendaView } from '../../types/types';
+import { addMeeting, editMeeting, deleteMeeting } from '../../services/MeetingServices';
+import { NoteServices } from '../../services/NoteServices';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -53,6 +61,18 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [activeSection, setActiveSection] = useState('tasks');
   const [searchValue, setSearchValue] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [notesRefreshKey, setNotesRefreshKey] = useState(0);
+  const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
+  const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
+
+  const [agendaView, setAgendaView] = useState<AgendaView>('day');
+
+  const { agenda, weekAgenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate, agendaView);
+
+  // View preferences (widget-ready)
+  const { viewMode, listDensity, setViewMode, setListDensity } = useViewPreference();
 
   // Close sidebar when switching to mobile
   useEffect(() => {
@@ -99,6 +119,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
     handleEdit(id, { status });
   };
 
+  const handleTaskQuickUpdate = (id: string, updates: Partial<Task>) => {
+    handleEdit(id, updates);
+  };
+
   const handleAddNewTask = () => {
     // Open modal for adding a new task
     openModal(null as any, 'edit');
@@ -111,12 +135,105 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const handleModalSave = async (updatedTask: Partial<Task>) => {
     if (taskToEdit) {
-      // Edit existing task
       await handleEdit(taskToEdit._id, updatedTask);
     } else {
-      // Add new task
       await handleAddTask(updatedTask as Omit<Task, '_id' | 'createdAt'>);
     }
+    refetchAgenda();
+  };
+
+  const handleQuickAddTask = () => {
+    openModal(null as any, 'edit');
+  };
+
+  const handleQuickAddNote = () => {
+    setNoteToEdit(null);
+    setNoteModalOpen(true);
+  };
+
+  const handleQuickAddMeeting = () => {
+    setMeetingToEdit(null);
+    setMeetingModalOpen(true);
+  };
+
+  const formatLocalDate = (date: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  };
+
+  const handleMeetingSave = async (meetingData: {
+    title: string;
+    date: string;
+    description?: string;
+    startTime?: string;
+    endTime?: string;
+  }) => {
+    try {
+      if (meetingToEdit) {
+        await editMeeting(meetingToEdit._id, meetingData);
+        setMeetingToEdit(null);
+      } else {
+        await addMeeting(meetingData);
+      }
+      refetchAgenda();
+    } catch (error) {
+      console.error('Error saving meeting:', error);
+    }
+  };
+
+  const handleMeetingDelete = async (meetingId: string) => {
+    try {
+      await deleteMeeting(meetingId);
+      setMeetingToEdit(null);
+      refetchAgenda();
+    } catch (error) {
+      console.error('Error deleting meeting:', error);
+    }
+  };
+
+  const handleNoteSave = async (noteData: {
+    title: string;
+    content?: string;
+    pinned?: boolean;
+    date?: string;
+  }) => {
+    try {
+      if (noteToEdit) {
+        await NoteServices.updateNote(noteToEdit._id, noteData);
+        setNoteToEdit(null);
+      } else {
+        await NoteServices.createNote(noteData);
+      }
+      refetchAgenda();
+      setNotesRefreshKey((k) => k + 1);
+    } catch (error) {
+      console.error('Error saving note:', error);
+    }
+  };
+
+  const handleNoteDelete = async (noteId: string) => {
+    try {
+      await NoteServices.deleteNote(noteId);
+      setNoteToEdit(null);
+      refetchAgenda();
+      setNotesRefreshKey((k) => k + 1);
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
+  };
+
+  const handleAgendaMeetingClick = (meeting: Meeting) => {
+    setMeetingToEdit(meeting);
+    setMeetingModalOpen(true);
+  };
+
+  const handleAgendaTaskClick = (task: Task) => {
+    openModal(task, 'edit');
+  };
+
+  const handleAgendaNoteClick = (note: Note) => {
+    setNoteToEdit(note);
+    setNoteModalOpen(true);
   };
 
   return (
@@ -154,21 +271,32 @@ const Dashboard: React.FC<DashboardProps> = () => {
             {/* Dashboard Content */}
             <div className={`flex-1 ${isMobile ? 'flex flex-col' : 'flex flex-col lg:grid lg:grid-cols-12'} gap-6 ${isMobile ? '' : 'min-h-0'}`}>
               {/* Tasks Section */}
-              <div className={`${isMobile ? 'w-full' : 'lg:col-span-8'} flex flex-col`}>
+              <div className={`${isMobile ? 'w-full' : 'lg:col-span-8'} flex flex-col ${isMobile ? '' : 'min-h-0'}`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-white text-2xl font-bold">
-                    {activeSection === 'dashboard' ? 'Dashboard Overview' : 
+                    {activeSection === 'dashboard' ? 'Dashboard Overview' :
                      activeSection === 'tasks' ? 'My Tasks' :
                      activeSection === 'mail' ? 'Mail & Messages' :
                      activeSection === 'chat' ? 'Team Chat' :
                      activeSection === 'spaces' ? 'Shared Spaces' :
                      activeSection === 'meet' ? 'Meetings' : 'My Tasks'}
                   </h2>
-                  <span className="text-white/60 text-sm">
-                    {activeSection === 'tasks' || activeSection === 'dashboard' ? 
-                      `${filteredTasks.length} tasks` : 
-                      'Coming Soon'}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    {(activeSection === 'tasks' || activeSection === 'dashboard') && (
+                      <TaskViewToggle
+                        viewMode={viewMode}
+                        onViewChange={setViewMode}
+                        listDensity={listDensity}
+                        onDensityChange={setListDensity}
+                        isMobile={isMobile}
+                      />
+                    )}
+                    <span className="text-white/60 text-sm">
+                      {activeSection === 'tasks' || activeSection === 'dashboard' ?
+                        `${filteredTasks.length} tasks` :
+                        'Coming Soon'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Task Stats */}
@@ -194,10 +322,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 </div>
 
                 {/* Content based on active section */}
-                <div className="flex-1 overflow-y-auto scrollbar-hide">
+                <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
                   {(activeSection === 'tasks' || activeSection === 'dashboard') ? (
                     <>
-                      
                       {/* Tasks content */}
                       {filteredTasks.length === 0 ? (
                         <div className="pro-glass pro-rounded-lg p-8 text-center">
@@ -207,16 +334,34 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           </p>
                         </div>
                       ) : (
-                        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
-                          {filteredTasks.map((task) => (
-                            <TaskCard
-                              key={task._id}
-                              task={task}
+                        <div
+                          key={viewMode}
+                          className="animate-fadeIn motion-reduce:animate-none"
+                        >
+                          {viewMode === 'cards' ? (
+                            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+                              {filteredTasks.map((task) => (
+                                <TaskCard
+                                  key={task._id}
+                                  task={task}
+                                  onEdit={handleTaskEdit}
+                                  onDelete={handleDelete}
+                                  onStatusChange={handleTaskStatusChange}
+                                  onQuickUpdate={handleTaskQuickUpdate}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <TaskList
+                              tasks={filteredTasks}
                               onEdit={handleTaskEdit}
                               onDelete={handleDelete}
                               onStatusChange={handleTaskStatusChange}
+                              onQuickUpdate={handleTaskQuickUpdate}
+                              density={isMobile ? 'compact' : listDensity}
+                              isMobile={isMobile}
                             />
-                          ))}
+                          )}
                         </div>
                       )}
                     </>
@@ -241,8 +386,20 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
                     className="flex-shrink-0"
+                    agenda={agenda}
+                    agendaLoading={agendaLoading}
+                    agendaEmpty={agendaEmpty}
+                    agendaView={agendaView}
+                    onAgendaViewChange={setAgendaView}
+                    weekAgenda={weekAgenda}
+                    onAddTask={handleQuickAddTask}
+                    onAddNote={handleQuickAddNote}
+                    onAddMeeting={handleQuickAddMeeting}
+                    onMeetingClick={handleAgendaMeetingClick}
+                    onTaskClick={handleAgendaTaskClick}
+                    onNoteClick={handleAgendaNoteClick}
                   />
-                  <NotesWidget className="flex-1" />
+                  <NotesWidget className="flex-1" refreshKey={notesRefreshKey} />
                 </div>
               )}
             </div>
@@ -254,8 +411,20 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
                   className="w-full"
+                  agenda={agenda}
+                  agendaLoading={agendaLoading}
+                  agendaEmpty={agendaEmpty}
+                  agendaView={agendaView}
+                  onAgendaViewChange={setAgendaView}
+                  weekAgenda={weekAgenda}
+                  onAddTask={handleQuickAddTask}
+                  onAddNote={handleQuickAddNote}
+                  onAddMeeting={handleQuickAddMeeting}
+                  onMeetingClick={handleAgendaMeetingClick}
+                  onTaskClick={handleAgendaTaskClick}
+                  onNoteClick={handleAgendaNoteClick}
                 />
-                <NotesWidget className="w-full min-h-[300px]" />
+                <NotesWidget className="w-full min-h-[300px]" refreshKey={notesRefreshKey} />
               </div>
             )}
           </div>
@@ -276,6 +445,27 @@ const Dashboard: React.FC<DashboardProps> = () => {
           closeModal={closeModal}
           modalMode={modalMode}
           onSave={handleModalSave}
+          defaultDueDate={formatLocalDate(selectedDate)}
+        />
+
+        {/* Meeting Modal */}
+        <MeetingModal
+          isOpen={meetingModalOpen}
+          closeModal={() => { setMeetingModalOpen(false); setMeetingToEdit(null); }}
+          onSave={handleMeetingSave}
+          prefillDate={selectedDate}
+          meetingToEdit={meetingToEdit}
+          onDelete={handleMeetingDelete}
+        />
+
+        {/* Note Modal */}
+        <NoteModal
+          isOpen={noteModalOpen}
+          closeModal={() => { setNoteModalOpen(false); setNoteToEdit(null); }}
+          onSave={handleNoteSave}
+          prefillDate={selectedDate}
+          noteToEdit={noteToEdit}
+          onDelete={handleNoteDelete}
         />
 
         {/* Mobile Sidebar Overlay */}

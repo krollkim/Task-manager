@@ -35,12 +35,14 @@ router.post('/', auth, async (req, res) => {
             return handleError(res, 400, 'Note title is required and must be a non-empty string.');
         }
 
-        const noteData = { 
+        const noteData = {
             title: note.title.trim(),
             content: note.content || '',
             pinned: note.pinned || false,
             userId: req.user.id
         };
+
+        if (note.date) noteData.date = note.date;
 
         const newNote = await createNote(noteData);
         return res.send(newNote);

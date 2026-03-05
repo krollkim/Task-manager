@@ -9,6 +9,10 @@ export interface Task {
     createdAt: string;
     status: 'todo' | 'in-progress' | 'done';
     description: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+    dueDate?: string;
+    estimateMinutes?: number;
+    spentMinutes?: number;
 }
 
 export interface TaskListProps {
@@ -19,6 +23,40 @@ export interface TaskListProps {
     modalProps?: ModalProps
 }
 
+export interface Meeting {
+  _id: string;
+  title: string;
+  date: string;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
+}
+
+export interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  pinned: boolean;
+  userId: string;
+  date?: string;
+  createdAt: string;
+}
+
+export interface AgendaData {
+  tasks: Task[];
+  notes: Note[];
+  meetings: Meeting[];
+}
+
+export type AgendaView = 'day' | 'week';
+
+export interface WeekAgendaDay {
+  date: Date;
+  label: string;
+  agenda: AgendaData;
+}
+
 export interface ModalProps {
   isOpen: boolean;
   openModal?: (task: Task, mode: ModalMode) => void;
@@ -26,4 +64,5 @@ export interface ModalProps {
   closeModal: () => void;
   modalMode: ModalMode;
   onSave: (updatedTask: Partial<Task>) => void;
+  defaultDueDate?: string;
 }
