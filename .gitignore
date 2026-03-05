@@ -25,3 +25,5 @@ server/node_modules/
 .env.test
 *.env
 config.bat
+temp_auto_push.bat
+temp_interactive_push.bat
