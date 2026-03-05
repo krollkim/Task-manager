@@ -13,7 +13,7 @@ import NoteModal from '../NoteModal';
 import { useTasks } from '../../hooks/useTasks';
 import { useViewPreference } from '../../hooks/useViewPreference';
 import { useAgenda } from '../../hooks/useAgenda';
-import { Task, Meeting, Note } from '../../types/types';
+import { Task, Meeting, Note, AgendaView } from '../../types/types';
 import { addMeeting, editMeeting, deleteMeeting } from '../../services/MeetingServices';
 import { NoteServices } from '../../services/NoteServices';
 import { useAuth } from '../auth/AuthContext';
@@ -67,7 +67,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
   const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
 
-  const { agenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate);
+  const [agendaView, setAgendaView] = useState<AgendaView>('day');
+
+  const { agenda, weekAgenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate, agendaView);
 
   // View preferences (widget-ready)
   const { viewMode, listDensity, setViewMode, setListDensity } = useViewPreference();
@@ -387,6 +389,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     agenda={agenda}
                     agendaLoading={agendaLoading}
                     agendaEmpty={agendaEmpty}
+                    agendaView={agendaView}
+                    onAgendaViewChange={setAgendaView}
+                    weekAgenda={weekAgenda}
                     onAddTask={handleQuickAddTask}
                     onAddNote={handleQuickAddNote}
                     onAddMeeting={handleQuickAddMeeting}
@@ -409,6 +414,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   agenda={agenda}
                   agendaLoading={agendaLoading}
                   agendaEmpty={agendaEmpty}
+                  agendaView={agendaView}
+                  onAgendaViewChange={setAgendaView}
+                  weekAgenda={weekAgenda}
                   onAddTask={handleQuickAddTask}
                   onAddNote={handleQuickAddNote}
                   onAddMeeting={handleQuickAddMeeting}

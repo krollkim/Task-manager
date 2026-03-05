@@ -49,6 +49,14 @@ export interface AgendaData {
   meetings: Meeting[];
 }
 
+export type AgendaView = 'day' | 'week';
+
+export interface WeekAgendaDay {
+  date: Date;
+  label: string;
+  agenda: AgendaData;
+}
+
 export interface ModalProps {
   isOpen: boolean;
   openModal?: (task: Task, mode: ModalMode) => void;
