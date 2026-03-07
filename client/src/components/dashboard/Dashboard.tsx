@@ -69,7 +69,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const [agendaView, setAgendaView] = useState<AgendaView>('day');
 
-  const { agenda, weekAgenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate, agendaView);
+  const { agenda, weekAgenda, monthAgenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate, agendaView);
 
   // View preferences (widget-ready)
   const { viewMode, listDensity, setViewMode, setListDensity } = useViewPreference();
@@ -392,6 +392,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     agendaView={agendaView}
                     onAgendaViewChange={setAgendaView}
                     weekAgenda={weekAgenda}
+                    monthAgenda={monthAgenda}
                     onAddTask={handleQuickAddTask}
                     onAddNote={handleQuickAddNote}
                     onAddMeeting={handleQuickAddMeeting}
@@ -417,6 +418,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   agendaView={agendaView}
                   onAgendaViewChange={setAgendaView}
                   weekAgenda={weekAgenda}
+                  monthAgenda={monthAgenda}
                   onAddTask={handleQuickAddTask}
                   onAddNote={handleQuickAddNote}
                   onAddMeeting={handleQuickAddMeeting}
