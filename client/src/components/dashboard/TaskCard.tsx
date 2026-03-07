@@ -202,11 +202,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div className={`
-      bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl shadow-lg
-      p-5 transition-all duration-500 ease-out hover:scale-[1.03] hover:shadow-2xl
-      hover:shadow-white/5 hover:-translate-y-1
+      task-glass rounded-xl shadow-lg
+      p-5 transition-all duration-300 ease-out
+      hover:shadow-[0_8px_30px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.12)]
       relative group cursor-pointer
-      ${task.status === 'done' ? 'opacity-90 hover:opacity-100' : ''}
+      ${task.status === 'done' ? 'opacity-55 hover:opacity-70' : ''}
       ${className}
     `}>
       {/* Header */}
@@ -224,7 +224,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <h3 className={`
             text-white font-semibold text-lg leading-tight flex-1 transition-all duration-500
             hover:text-white/90 group-hover:translate-x-1
-            ${task.status === 'done' ? 'line-through opacity-75 text-green-200' : ''}
+            ${task.status === 'done' ? 'line-through text-white/35' : ''}
           `}>
             {task.task}
           </h3>
@@ -241,7 +241,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
       {/* Description */}
       {task.description && (
-        <p className="text-white/80 text-sm mb-4 leading-relaxed">
+        <p className="text-white/50 text-sm mb-4 leading-relaxed">
           {task.description}
         </p>
       )}
@@ -267,7 +267,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 text-white/60 text-xs">
+        <div className="flex items-center space-x-2 text-white/40 text-xs">
           {/* Due date chip — always visible */}
           <button
             onClick={handleDateChipClick}

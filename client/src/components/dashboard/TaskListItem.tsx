@@ -208,8 +208,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
     <div
       className={`
         group relative
-        bg-slate-800/30 backdrop-blur-sm border border-slate-700/30 rounded-lg
-        hover:bg-slate-800/50 hover:border-slate-600/50
+        task-glass rounded-lg
         transition-all duration-200
         ${isCompact ? 'py-2 px-4' : 'py-3 px-5'}
       `}
@@ -238,9 +237,9 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
           </button>
           <h4
             className={`
-              text-white font-medium truncate
+              text-white font-semibold truncate
               ${isCompact ? 'text-sm' : 'text-base'}
-              ${task.status === 'done' ? 'line-through opacity-75 text-green-200' : ''}
+              ${task.status === 'done' ? 'line-through text-white/35' : ''}
             `}
             title={task.task}
           >
@@ -251,7 +250,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
         {/* Description */}
         {!isCompact && (
           <div className="col-span-3">
-            <p className="text-white/70 text-sm truncate" title={task.description}>
+            <p className="text-white/50 text-sm truncate" title={task.description}>
               {task.description || '\u2014'}
             </p>
           </div>
@@ -271,7 +270,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
 
         {/* Date */}
         <div className="col-span-2 text-right">
-          <div className="flex items-center justify-end space-x-2 text-white/60 text-xs">
+          <div className="flex items-center justify-end space-x-2 text-white/40 text-xs">
             <button
               onClick={handleDateChipClick}
               className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-full border transition-colors ${
@@ -334,9 +333,9 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
             </button>
             <h4
               className={`
-                text-white font-medium flex-1 min-w-0 truncate
+                text-white font-semibold flex-1 min-w-0 truncate
                 ${isCompact ? 'text-sm' : 'text-base'}
-                ${task.status === 'done' ? 'line-through opacity-75 text-green-200' : ''}
+                ${task.status === 'done' ? 'line-through text-white/35' : ''}
               `}
             >
               {task.task}
@@ -353,7 +352,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
         </div>
 
         {!isCompact && task.description && (
-          <p className="text-white/70 text-sm pl-9">{task.description}</p>
+          <p className="text-white/50 text-sm pl-9">{task.description}</p>
         )}
 
         <div className="flex items-center justify-between pl-9">
@@ -365,7 +364,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
           >
             {task.status.replace('-', ' ')}
           </span>
-          <div className="flex items-center space-x-2 text-white/60 text-xs">
+          <div className="flex items-center space-x-2 text-white/40 text-xs">
             <button
               onClick={handleDateChipClick}
               className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-full border transition-colors ${

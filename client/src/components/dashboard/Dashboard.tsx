@@ -381,7 +381,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
               {/* Desktop: Right Sidebar - Calendar & Notes */}
               {!isMobile && (
-                <div className="lg:col-span-4 flex flex-col space-y-6 min-h-0">
+                <div className="lg:col-span-4 flex flex-col space-y-6 min-h-0 overflow-y-auto scrollbar-hide">
                   <CalendarWidget
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
