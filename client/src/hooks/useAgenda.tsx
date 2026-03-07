@@ -29,6 +29,15 @@ function sortAgenda(data: AgendaData): AgendaData {
     return { meetings, tasks, notes };
 }
 
+function getMonthDays(date: Date): Date[] {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const total = new Date(year, month + 1, 0).getDate();
+    const days: Date[] = [];
+    for (let d = 1; d <= total; d++) days.push(new Date(year, month, d));
+    return days;
+}
+
 function getWeekDays(date: Date): Date[] {
     const d = new Date(date);
     const day = d.getDay();
@@ -58,6 +67,7 @@ export const useAgenda = (selectedDate: Date, agendaView: AgendaView = 'day') =>
         meetings: []
     });
     const [weekAgenda, setWeekAgenda] = useState<WeekAgendaDay[]>([]);
+    const [monthAgenda, setMonthAgenda] = useState<WeekAgendaDay[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -107,31 +117,64 @@ export const useAgenda = (selectedDate: Date, agendaView: AgendaView = 'day') =>
         }
     }, []);
 
+    const fetchMonthAgenda = useCallback(async (date: Date) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const days = getMonthDays(date);
+            const results = await Promise.all(days.map(d => getAgenda(d)));
+            setMonthAgenda(days.map((d, i) => ({
+                date: d,
+                label: formatDayLabel(d),
+                agenda: sortAgenda({
+                    tasks: results[i].tasks || [],
+                    notes: results[i].notes || [],
+                    meetings: results[i].meetings || [],
+                }),
+            })));
+        } catch (err) {
+            console.error('Error fetching month agenda:', err);
+            setError(err instanceof Error ? err.message : 'Failed to fetch month agenda');
+            setMonthAgenda([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
         if (agendaView === 'day') {
             fetchDayAgenda(selectedDate);
-        } else {
+        } else if (agendaView === 'week') {
             fetchWeekAgenda(selectedDate);
+        } else {
+            fetchMonthAgenda(selectedDate);
         }
-    }, [selectedDate, agendaView, fetchDayAgenda, fetchWeekAgenda]);
+    }, [selectedDate, agendaView, fetchDayAgenda, fetchWeekAgenda, fetchMonthAgenda]);
 
     const refetch = useCallback(() => {
         if (agendaView === 'day') {
             fetchDayAgenda(selectedDate);
-        } else {
+        } else if (agendaView === 'week') {
             fetchWeekAgenda(selectedDate);
+        } else {
+            fetchMonthAgenda(selectedDate);
         }
-    }, [selectedDate, agendaView, fetchDayAgenda, fetchWeekAgenda]);
+    }, [selectedDate, agendaView, fetchDayAgenda, fetchWeekAgenda, fetchMonthAgenda]);
 
     const isEmpty = agendaView === 'day'
         ? (agenda.tasks.length === 0 && agenda.notes.length === 0 && agenda.meetings.length === 0)
-        : (weekAgenda.length > 0 && weekAgenda.every(d =>
+        : agendaView === 'week'
+        ? (weekAgenda.length > 0 && weekAgenda.every(d =>
+            d.agenda.tasks.length === 0 && d.agenda.notes.length === 0 && d.agenda.meetings.length === 0
+        ))
+        : (monthAgenda.length > 0 && monthAgenda.every(d =>
             d.agenda.tasks.length === 0 && d.agenda.notes.length === 0 && d.agenda.meetings.length === 0
         ));
 
     return {
         agenda,
         weekAgenda,
+        monthAgenda,
         loading,
         error,
         isEmpty,

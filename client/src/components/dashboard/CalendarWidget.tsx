@@ -11,6 +11,7 @@ interface CalendarWidgetProps {
   agendaView?: AgendaView;
   onAgendaViewChange?: (view: AgendaView) => void;
   weekAgenda?: WeekAgendaDay[];
+  monthAgenda?: WeekAgendaDay[];
   onAddTask?: () => void;
   onAddNote?: () => void;
   onAddMeeting?: () => void;
@@ -29,6 +30,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   agendaView = 'day',
   onAgendaViewChange,
   weekAgenda = [],
+  monthAgenda = [],
   onAddTask,
   onAddNote,
   onAddMeeting,
@@ -97,13 +99,15 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
   const handlePrev = () => {
     const d = new Date(selectedDate);
-    d.setDate(d.getDate() + (agendaView === 'week' ? -7 : -1));
+    if (agendaView === 'month') d.setMonth(d.getMonth() - 1);
+    else d.setDate(d.getDate() + (agendaView === 'week' ? -7 : -1));
     onDateSelect?.(d);
   };
 
   const handleNext = () => {
     const d = new Date(selectedDate);
-    d.setDate(d.getDate() + (agendaView === 'week' ? 7 : 1));
+    if (agendaView === 'month') d.setMonth(d.getMonth() + 1);
+    else d.setDate(d.getDate() + (agendaView === 'week' ? 7 : 1));
     onDateSelect?.(d);
   };
 
@@ -128,14 +132,24 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     );
   };
 
+  const buildMonthMap = (): Record<number, AgendaData> => {
+    const map: Record<number, AgendaData> = {};
+    monthAgenda.forEach(({ date, agenda }) => {
+      if (date.getMonth() === currentMonth && date.getFullYear() === currentYear)
+        map[date.getDate()] = agenda;
+    });
+    return map;
+  };
+
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
     const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
     const days = [];
+    const monthMap = buildMonthMap();
 
     for (let i = 0; i < firstDay; i++) {
       days.push(
-        <div key={`empty-${i}`} className="h-8 w-8"></div>
+        <div key={`empty-${i}`} className="h-10 w-8"></div>
       );
     }
 
@@ -144,8 +158,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
         <button
           key={day}
           onClick={() => handleDateClick(day)}
+          onDoubleClick={() => { handleDateClick(day); onAgendaViewChange?.('day'); }}
           className={`
-            h-8 w-8 rounded-lg text-sm font-medium transition-all duration-200
+            h-10 w-8 flex flex-col items-center justify-start pt-1 rounded-lg text-sm font-medium transition-all duration-200
             hover:scale-110 hover:bg-white/20
             ${isToday(day)
               ? 'bg-white/30 text-white font-bold'
@@ -155,7 +170,23 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
             }
           `}
         >
-          {day}
+          <span className="text-sm font-medium leading-none">{day}</span>
+          {monthMap[day] && (
+            <div
+              className="flex justify-center gap-0.5 mt-1"
+              onClick={(e) => { e.stopPropagation(); handleDateClick(day); onAgendaViewChange?.('day'); }}
+            >
+              {monthMap[day].meetings.length > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
+              )}
+              {monthMap[day].tasks.length > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_5px_rgba(96,165,250,0.9)]" />
+              )}
+              {monthMap[day].notes.length > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 shadow-[0_0_5px_rgba(250,204,21,0.9)]" />
+              )}
+            </div>
+          )}
         </button>
       );
     }
@@ -198,6 +229,74 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           <span className="text-white text-xs truncate">{note.title}</span>
         </div>
       ))}
+    </div>
+  );
+
+  const CategoryDivider = ({ label, color }: { label: string; color: 'purple' | 'blue' | 'yellow' }) => {
+    const styles = {
+      purple: { line: 'bg-purple-500/40 shadow-[0_0_6px_rgba(168,85,247,0.5)]', text: 'text-purple-400/80' },
+      blue:   { line: 'bg-blue-500/40 shadow-[0_0_6px_rgba(96,165,250,0.5)]',   text: 'text-blue-400/80' },
+      yellow: { line: 'bg-yellow-500/40 shadow-[0_0_6px_rgba(250,204,21,0.5)]', text: 'text-yellow-400/80' },
+    }[color];
+    return (
+      <div className="flex items-center gap-2 my-2">
+        <div className={`flex-1 h-px ${styles.line}`} />
+        <span className={`${styles.text} text-[9px] tracking-[0.2em] font-semibold uppercase`}>{label}</span>
+        <div className={`flex-1 h-px ${styles.line}`} />
+      </div>
+    );
+  };
+
+  const renderGroupedAgendaItems = (dayAgenda: AgendaData) => (
+    <div className="space-y-1">
+      {dayAgenda.meetings.length > 0 && (
+        <>
+          <CategoryDivider label="Meetings" color="purple" />
+          {dayAgenda.meetings.map((meeting) => (
+            <div key={meeting._id} onClick={() => onMeetingClick?.(meeting)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+              <span className="text-purple-300 mr-2 text-xs">📅</span>
+              <span className="text-white/60 text-xs mr-2 whitespace-nowrap">{meeting.startTime || '--:--'}</span>
+              <span className="text-white text-xs truncate">{meeting.title}</span>
+            </div>
+          ))}
+        </>
+      )}
+      {dayAgenda.tasks.length > 0 && (
+        <>
+          <CategoryDivider label="Tasks" color="blue" />
+          {dayAgenda.tasks.map((task) => (
+            <div key={task._id} onClick={() => onTaskClick?.(task)} className="flex items-center justify-between p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+              <div className="flex items-center min-w-0">
+                <span className="text-blue-300 mr-2 text-xs">
+                  {task.status === 'done' ? '✅' : task.status === 'in-progress' ? '⏳' : '📋'}
+                </span>
+                <span className="text-white text-xs truncate">{task.task}</span>
+              </div>
+              {task.priority && (
+                <span className={`text-xs ml-2 px-1.5 py-0.5 rounded-full whitespace-nowrap ${
+                  task.priority === 'urgent' ? 'bg-red-600/20 text-red-400' :
+                  task.priority === 'high' ? 'bg-orange-600/20 text-orange-400' :
+                  task.priority === 'medium' ? 'bg-yellow-600/20 text-yellow-400' :
+                  'bg-green-600/20 text-green-400'
+                }`}>
+                  {task.priority}
+                </span>
+              )}
+            </div>
+          ))}
+        </>
+      )}
+      {dayAgenda.notes.length > 0 && (
+        <>
+          <CategoryDivider label="Notes" color="yellow" />
+          {dayAgenda.notes.map((note) => (
+            <div key={note._id} onClick={() => onNoteClick?.(note)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+              <span className="text-yellow-300 mr-2 text-xs">📝</span>
+              <span className="text-white text-xs truncate">{note.title}</span>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 
@@ -291,7 +390,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           onClick={handlePrev}
           className="px-2 py-1 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
-          ‹ {agendaView === 'week' ? 'Prev Week' : 'Prev Day'}
+          ‹ {agendaView === 'month' ? 'Prev Month' : agendaView === 'week' ? 'Prev Week' : 'Prev Day'}
         </button>
         <button
           onClick={handleToday}
@@ -303,7 +402,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           onClick={handleNext}
           className="px-2 py-1 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
-          {agendaView === 'week' ? 'Next Week' : 'Next Day'} ›
+          {agendaView === 'month' ? 'Next Month' : agendaView === 'week' ? 'Next Week' : 'Next Day'} ›
         </button>
       </div>
 
@@ -329,6 +428,16 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
         >
           Week
         </button>
+        <button
+          onClick={() => onAgendaViewChange?.('month')}
+          className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+            agendaView === 'month'
+              ? 'bg-white/20 text-white font-medium'
+              : 'text-white/50 hover:text-white hover:bg-white/10'
+          }`}
+        >
+          Month
+        </button>
       </div>
 
       {/* Agenda List */}
@@ -342,6 +451,31 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
             <p className="text-white/50 text-sm">Nothing scheduled</p>
             <p className="text-white/30 text-xs mt-1">Use the buttons above to add items</p>
           </div>
+        ) : agendaView === 'month' ? (
+          (() => {
+            const monthMap = buildMonthMap();
+            const selectedDayData = selectedDate.getMonth() === currentMonth && selectedDate.getFullYear() === currentYear
+              ? monthMap[selectedDate.getDate()]
+              : undefined;
+            const isEmpty = !selectedDayData || (
+              selectedDayData.meetings.length === 0 &&
+              selectedDayData.tasks.length === 0 &&
+              selectedDayData.notes.length === 0
+            );
+            return (
+              <div>
+                <p className="text-white/30 text-xs mb-2">
+                  {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {' · '}double-click to open Day view
+                </p>
+                {isEmpty ? (
+                  <p className="text-white/40 text-sm text-center py-2">Nothing scheduled</p>
+                ) : (
+                  renderGroupedAgendaItems(selectedDayData!)
+                )}
+              </div>
+            );
+          })()
         ) : agendaView === 'week' ? (
           <div className="space-y-3">
             {weekAgenda.map((day) => {
@@ -360,7 +494,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {renderAgendaItems(agenda ?? { meetings: [], tasks: [], notes: [] })}
+            {renderGroupedAgendaItems(agenda ?? { meetings: [], tasks: [], notes: [] })}
           </div>
         )}
       </div>

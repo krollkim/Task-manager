@@ -70,10 +70,10 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 |---|---|
 | `server/models/Meeting.js` | B1 done |
 | `server/routes/agenda.js` | B1 done |
-| `client/src/types/types.ts` | B4b done (committed & pushed) |
-| `client/src/hooks/useAgenda.tsx` | B4b done (committed & pushed) |
-| `client/src/components/dashboard/CalendarWidget.tsx` | B5 done (committed) |
-| `client/src/components/dashboard/Dashboard.tsx` | B4c wiring done (committed & pushed) |
+| `client/src/types/types.ts` | B6 done |
+| `client/src/hooks/useAgenda.tsx` | B6 done |
+| `client/src/components/dashboard/CalendarWidget.tsx` | B6 done |
+| `client/src/components/dashboard/Dashboard.tsx` | B6 wiring done |
 | `client/src/components/modals/MeetingModal.tsx` | B3 done |
 | `client/src/components/modals/NoteModal.tsx` | B3 done |
 
@@ -90,8 +90,16 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 - [x] `useEffect` syncs `currentMonth`/`currentYear` grid state when `selectedDate` crosses a month boundary
 - [x] All wired through existing `onDateSelect` prop — zero changes to `Dashboard.tsx`
 
-### B6 — Month Calendar
-- [ ] Implement a full Month Grid view (Sun–Sat) with event indicators
+### B6 — Month Calendar ✅ (done)
+- [x] `AgendaView` extended to `'day' | 'week' | 'month'`
+- [x] `getMonthDays()` + `fetchMonthAgenda()` in `useAgenda` (Promise.all over ~28–31 days)
+- [x] `monthAgenda` state, `isEmpty` and `refetch` handle all three modes
+- [x] `buildMonthMap()` in CalendarWidget — maps day numbers → AgendaData for current month
+- [x] Neon event dots (purple=meeting, blue=task, yellow=note) visible in all views (Day/Week/Month)
+- [x] Single click → update `selectedDate`, stay in current view; double-click / dot-click → switch to Day view
+- [x] Prev/Next in Month view navigates ±1 month; labels update contextually
+- [x] Day toggle added alongside Day | Week
+- [x] Day view & Month single-click preview use `renderGroupedAgendaItems` with futuristic category separators (glowing `h-px` lines + spaced-out caps labels)
 
 ### B7 — Quick Reschedule
 - [ ] Add `Move to Tomorrow` / `Move to Next Week` actions on tasks/meetings
@@ -106,7 +114,4 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 
 ---
 
-## Current Branch: `feature/calendar-b5`
-
-### Goal
-Add Previous / Today / Next navigation controls to the Agenda view so users can move between days (in Day mode) or weeks (in Week mode) without using the calendar grid picker.
+## Current Branch: `feature/calendar-b6`

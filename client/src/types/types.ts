@@ -49,7 +49,7 @@ export interface AgendaData {
   meetings: Meeting[];
 }
 
-export type AgendaView = 'day' | 'week';
+export type AgendaView = 'day' | 'week' | 'month';
 
 export interface WeekAgendaDay {
   date: Date;
