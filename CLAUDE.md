@@ -72,13 +72,41 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 | `server/routes/agenda.js` | B1 done |
 | `client/src/types/types.ts` | B4b done (committed & pushed) |
 | `client/src/hooks/useAgenda.tsx` | B4b done (committed & pushed) |
-| `client/src/components/dashboard/CalendarWidget.tsx` | B4c done (committed & pushed) |
+| `client/src/components/dashboard/CalendarWidget.tsx` | B5 done (committed) |
 | `client/src/components/dashboard/Dashboard.tsx` | B4c wiring done (committed & pushed) |
 | `client/src/components/modals/MeetingModal.tsx` | B3 done |
 | `client/src/components/modals/NoteModal.tsx` | B3 done |
 
 ---
 
-## Next Step
-**B4 is fully complete, pushed, and smoke-tested.** All calendar hub features (B1–B4) are done and verified.
-→ Ready to open PR: `feature/calandar-b4` → `development`
+---
+
+## Upcoming Roadmap — Phase B: Calendar Hub Expansion
+
+### B5 — Calendar Navigation ✅ (committed)
+- [x] `handlePrev` / `handleNext` — moves ±1 day (Day mode) or ±7 days (Week mode)
+- [x] `handleToday` — resets `selectedDate` to today
+- [x] Nav row rendered above Day/Week toggle; labels change contextually ("Prev Day" / "Prev Week")
+- [x] `useEffect` syncs `currentMonth`/`currentYear` grid state when `selectedDate` crosses a month boundary
+- [x] All wired through existing `onDateSelect` prop — zero changes to `Dashboard.tsx`
+
+### B6 — Month Calendar
+- [ ] Implement a full Month Grid view (Sun–Sat) with event indicators
+
+### B7 — Quick Reschedule
+- [ ] Add `Move to Tomorrow` / `Move to Next Week` actions on tasks/meetings
+
+### B8 — Recurring Meetings
+- [ ] Add logic for daily/weekly/monthly repeating events in the DB and UI
+
+### B9 — Global Search
+- [ ] Extend existing search to cover the Calendar Hub (meetings/notes/tasks)
+
+> Note: B10 (Task Search) is already implemented and working in the dashboard.
+
+---
+
+## Current Branch: `feature/calendar-b5`
+
+### Goal
+Add Previous / Today / Next navigation controls to the Agenda view so users can move between days (in Day mode) or weeks (in Week mode) without using the calendar grid picker.

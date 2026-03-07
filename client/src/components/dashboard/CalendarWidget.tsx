@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AgendaData, AgendaView, WeekAgendaDay, Meeting, Task, Note } from '../../types/types';
 
 interface CalendarWidgetProps {
@@ -38,6 +38,12 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 }) => {
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
+
+  // Sync grid display when selectedDate crosses a month boundary (e.g. via Prev/Next nav)
+  useEffect(() => {
+    setCurrentMonth(selectedDate.getMonth());
+    setCurrentYear(selectedDate.getFullYear());
+  }, [selectedDate]);
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -87,6 +93,22 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
   const handleOK = () => {
     onDateSelect?.(selectedDate);
+  };
+
+  const handlePrev = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + (agendaView === 'week' ? -7 : -1));
+    onDateSelect?.(d);
+  };
+
+  const handleNext = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + (agendaView === 'week' ? 7 : 1));
+    onDateSelect?.(d);
+  };
+
+  const handleToday = () => {
+    onDateSelect?.(new Date());
   };
 
   const isToday = (day: number) => {
@@ -263,8 +285,30 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
         </div>
       </div>
 
+      {/* Prev / Today / Next Navigation */}
+      <div className="flex items-center justify-between mt-3">
+        <button
+          onClick={handlePrev}
+          className="px-2 py-1 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+        >
+          ‹ {agendaView === 'week' ? 'Prev Week' : 'Prev Day'}
+        </button>
+        <button
+          onClick={handleToday}
+          className="px-3 py-1 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors font-medium"
+        >
+          Today
+        </button>
+        <button
+          onClick={handleNext}
+          className="px-2 py-1 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+        >
+          {agendaView === 'week' ? 'Next Week' : 'Next Day'} ›
+        </button>
+      </div>
+
       {/* Day / Week Toggle */}
-      <div className="flex items-center space-x-1 mt-3 mb-1">
+      <div className="flex items-center space-x-1 mt-2 mb-1">
         <button
           onClick={() => onAgendaViewChange?.('day')}
           className={`px-3 py-1 text-xs rounded-lg transition-colors ${
