@@ -21,133 +21,75 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onQuickUpdate,
   className = ''
 }) => {
-  // Action menu state
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [menuPosition, setMenuPosition] = React.useState({ top: 0, left: 0 });
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const open = Boolean(anchorEl);
-
-  // Chip popup state
   const [priorityMenuOpen, setPriorityMenuOpen] = React.useState(false);
   const [priorityMenuPos, setPriorityMenuPos] = React.useState({ top: 0, left: 0 });
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
   const [datePickerPos, setDatePickerPos] = React.useState({ top: 0, left: 0 });
 
-  const updateMenuPosition = () => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const menuHeight = 200;
-      const menuWidth = 160;
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-
-      const wouldBeClippedBottom = rect.bottom + menuHeight > viewportHeight;
-      const wouldBeClippedRight = rect.right > viewportWidth - menuWidth;
-
-      setMenuPosition({
-        top: wouldBeClippedBottom ? rect.top - menuHeight : rect.bottom,
-        left: wouldBeClippedRight ? rect.right - menuWidth : rect.left,
-      });
-    }
-  };
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setPriorityMenuOpen(false);
-    setDatePickerOpen(false);
-    updateMenuPosition();
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Update menu position on scroll
-  React.useEffect(() => {
-    const handleScroll = () => {
-      if (open) {
-        updateMenuPosition();
-      }
-    };
-
-    if (open) {
-      window.addEventListener('scroll', handleScroll, true);
-      return () => window.removeEventListener('scroll', handleScroll, true);
-    }
-  }, [open]);
-
-  // Close any popup on Escape
+  // Close chip popups on Escape
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         if (priorityMenuOpen) setPriorityMenuOpen(false);
         else if (datePickerOpen) setDatePickerOpen(false);
-        else if (open) handleClose();
       }
     };
-
-    if (open || priorityMenuOpen || datePickerOpen) {
+    if (priorityMenuOpen || datePickerOpen) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [open, priorityMenuOpen, datePickerOpen]);
-
-  const getStatusColor = (status: Task['status']) => {
-    switch (status) {
-      case 'done':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'in-progress':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-      default:
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-    }
-  };
+  }, [priorityMenuOpen, datePickerOpen]);
 
   const getStatusIcon = (status: Task['status']) => {
     switch (status) {
-      case 'done':
-        return <span className="text-green-400 text-xl">✅</span>;
-      case 'in-progress':
-        return <span className="text-yellow-400 text-xl">⏳</span>;
-      default:
-        return <span className="text-white/60 text-xl">⭕</span>;
+      case 'done':        return <span className="text-green-400 text-xl">✅</span>;
+      case 'in-progress': return <span className="text-yellow-400 text-xl">⏳</span>;
+      default:            return <span className="text-white/60 text-xl">⭕</span>;
     }
   };
 
+  // Cycle: todo → in-progress → done → todo
   const handleStatusToggle = () => {
-    const newStatus = task.status === 'done' ? 'todo' : 'done';
-    onStatusChange?.(task._id, newStatus);
-  };
-
-  const handleStatusChange = (newStatus: Task['status']) => {
-    onStatusChange?.(task._id, newStatus);
-    handleClose();
+    const next: Record<Task['status'], Task['status']> = {
+      'todo': 'in-progress',
+      'in-progress': 'done',
+      'done': 'todo',
+    };
+    onStatusChange?.(task._id, next[task.status]);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const getPriorityColor = (priority?: Task['priority']) => {
     switch (priority) {
       case 'urgent': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
+      case 'high':   return 'bg-orange-500';
       case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-blue-500';
-      default: return 'bg-gray-500';
+      case 'low':    return 'bg-blue-500';
+      default:       return 'bg-gray-500';
     }
   };
 
   const getPriorityChipStyle = (priority?: Task['priority']) => {
     switch (priority) {
       case 'urgent': return 'border-red-500/30 text-red-300 bg-red-500/10 hover:border-red-500/50';
-      case 'high': return 'border-orange-500/30 text-orange-300 bg-orange-500/10 hover:border-orange-500/50';
+      case 'high':   return 'border-orange-500/30 text-orange-300 bg-orange-500/10 hover:border-orange-500/50';
       case 'medium': return 'border-yellow-500/30 text-yellow-300 bg-yellow-500/10 hover:border-yellow-500/50';
-      case 'low': return 'border-blue-500/30 text-blue-300 bg-blue-500/10 hover:border-blue-500/50';
-      default: return 'border-white/10 text-white/60 hover:border-white/30';
+      case 'low':    return 'border-blue-500/30 text-blue-300 bg-blue-500/10 hover:border-blue-500/50';
+      default:       return 'border-white/10 text-white/60 hover:border-white/30';
+    }
+  };
+
+  // Pass 3: priority-driven card glow — cleared when done
+  const getPriorityCardStyle = () => {
+    if (task.status === 'done') return '';
+    switch (task.priority) {
+      case 'urgent': return 'shadow-[0_0_10px_rgba(220,38,38,0.35)] border-red-500/40';
+      case 'high':   return 'shadow-[0_0_10px_rgba(249,115,22,0.3)] border-orange-500/35';
+      case 'medium': return 'shadow-[0_0_8px_rgba(96,165,250,0.25)] border-blue-400/30';
+      default:       return '';
     }
   };
 
@@ -164,10 +106,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
     return due < today;
   };
 
-  // Priority chip handlers
   const handlePriorityChipClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setAnchorEl(null);
     setDatePickerOpen(false);
     const rect = e.currentTarget.getBoundingClientRect();
     setPriorityMenuPos({
@@ -182,10 +122,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
     setPriorityMenuOpen(false);
   };
 
-  // Due date chip handlers
   const handleDateChipClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setAnchorEl(null);
     setPriorityMenuOpen(false);
     const rect = e.currentTarget.getBoundingClientRect();
     setDatePickerPos({
@@ -202,10 +140,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div className={`
-      task-glass rounded-xl shadow-lg
+      task-glass rounded-xl
       p-5 transition-all duration-300 ease-out
-      hover:shadow-[0_8px_30px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.12)]
+      hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.12)]
       relative group cursor-pointer
+      ${getPriorityCardStyle()}
       ${task.status === 'done' ? 'opacity-55 hover:opacity-70' : ''}
       ${className}
     `}>
@@ -215,28 +154,46 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <button
             onClick={handleStatusToggle}
             className="flex-shrink-0 hover:scale-125 active:scale-95 transition-all duration-300
-                       hover:drop-shadow-lg active:animate-bounce-subtle
+                       hover:drop-shadow-lg
                        focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2
                        focus:ring-offset-transparent rounded-full p-1"
+            title={`Status: ${task.status} — click to advance`}
           >
             {getStatusIcon(task.status)}
           </button>
           <h3 className={`
-            text-white font-semibold text-lg leading-tight flex-1 transition-all duration-500
-            hover:text-white/90 group-hover:translate-x-1
+            text-white font-semibold text-lg leading-tight flex-1 transition-all duration-300
+            group-hover:translate-x-1
             ${task.status === 'done' ? 'line-through text-white/35' : ''}
           `}>
             {task.task}
           </h3>
         </div>
 
-        <button
-          ref={buttonRef}
-          onClick={handleClick}
-          className="text-white/60 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-full hover:bg-white/10"
-        >
-          <span className="text-xl">⋮</span>
-        </button>
+        {/* Pass 2: Inline actions — always visible on mobile, reveal on hover desktop */}
+        <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
+          <button
+            onClick={(e) => { e.stopPropagation(); handleStatusToggle(); }}
+            title="Advance status"
+            className="p-1.5 rounded-lg text-green-400/70 hover:text-green-300 hover:bg-green-500/10 transition-colors duration-200"
+          >
+            <span className="text-sm">✓</span>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit?.(task); }}
+            title="Edit"
+            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors duration-200"
+          >
+            <span className="text-sm">✏️</span>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete?.(task._id); }}
+            title="Delete"
+            className="p-1.5 rounded-lg text-red-400/50 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-200"
+          >
+            <span className="text-sm">🗑️</span>
+          </button>
+        </div>
       </div>
 
       {/* Description */}
@@ -250,14 +207,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <span className={`
-            ${getStatusColor(task.status)}
-            border font-medium text-xs capitalize transition-all duration-300
-            hover:scale-105 hover:shadow-lg cursor-pointer px-2 py-1 rounded-full
-            ${task.status === 'done' ? 'animate-pulse-slow' : ''}
+            ${task.status === 'done'
+              ? 'bg-green-500/20 text-green-300 border-green-500/30'
+              : task.status === 'in-progress'
+              ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+              : 'bg-blue-500/20 text-blue-300 border-blue-500/30'}
+            border font-medium text-xs capitalize px-2 py-1 rounded-full transition-all duration-300
           `}>
             {task.status.replace('-', ' ')}
           </span>
-          {/* Priority chip */}
           <button
             onClick={handlePriorityChipClick}
             className={`flex items-center space-x-1.5 px-2 py-0.5 rounded-full border text-xs transition-colors ${getPriorityChipStyle(task.priority)}`}
@@ -268,7 +226,6 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         <div className="flex items-center space-x-2 text-white/40 text-xs">
-          {/* Due date chip — always visible */}
           <button
             onClick={handleDateChipClick}
             className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-full border transition-colors ${
@@ -298,76 +255,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </div>
 
-      {/* Portal for Action Menu */}
-      {open && createPortal(
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={handleClose}
-          />
-          <div
-            className="fixed bg-slate-800/95 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl z-50 min-w-[160px]"
-            style={{
-              top: `${menuPosition.top}px`,
-              left: `${menuPosition.left}px`,
-            }}
-          >
-            <button
-              onClick={() => handleStatusChange('todo')}
-              className={`w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 rounded-t-xl flex items-center ${
-                task.status === 'todo' ? 'bg-white/5' : ''
-              }`}
-            >
-              <span className="mr-2 text-blue-400">⭕</span>
-              To Do
-            </button>
-            <button
-              onClick={() => handleStatusChange('in-progress')}
-              className={`w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center ${
-                task.status === 'in-progress' ? 'bg-white/5' : ''
-              }`}
-            >
-              <span className="mr-2 text-yellow-400">⏳</span>
-              In Progress
-            </button>
-            <button
-              onClick={() => handleStatusChange('done')}
-              className={`w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center ${
-                task.status === 'done' ? 'bg-white/5' : ''
-              }`}
-            >
-              <span className="mr-2 text-green-400">✅</span>
-              Done
-            </button>
-
-            <div className="border-t border-white/10 my-1" />
-
-            <button
-              onClick={() => {
-                onEdit?.(task);
-                handleClose();
-              }}
-              className="w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors duration-200 flex items-center"
-            >
-              <span className="mr-2">✏️</span>
-              Edit Task
-            </button>
-            <button
-              onClick={() => {
-                onDelete?.(task._id);
-                handleClose();
-              }}
-              className="w-full px-4 py-2 text-left text-red-300 hover:bg-red-500/10 transition-colors duration-200 rounded-b-xl flex items-center"
-            >
-              <span className="mr-2">🗑️</span>
-              Delete Task
-            </button>
-          </div>
-        </>,
-        document.body
-      )}
-
-      {/* Portal for Priority Quick-Change */}
+      {/* Priority Quick-Change Portal */}
       {priorityMenuOpen && createPortal(
         <>
           <div className="fixed inset-0 z-40" onClick={() => setPriorityMenuOpen(false)} />
@@ -392,7 +280,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         document.body
       )}
 
-      {/* Portal for Due Date Quick-Change */}
+      {/* Due Date Quick-Change Portal */}
       {datePickerOpen && createPortal(
         <>
           <div className="fixed inset-0 z-40" onClick={() => setDatePickerOpen(false)} />
