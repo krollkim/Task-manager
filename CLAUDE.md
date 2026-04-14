@@ -132,10 +132,11 @@ Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP an
 - [x] MongoDB cluster migrated → `taskmanagerclusterv2.l9xc3t6.mongodb.net`
 - [x] Live verified: /search returns tasks + notes + meetings with score/snippet/type fields ✅
 
-### Phase 1 — Parallel Streams (next)
-- [ ] Stream A: GSAP animations (task cards, agenda items, modals, calendar transitions)
-- [ ] Stream B: socket.io chat infrastructure + team presence panel
-- [ ] Stream C: message → task/note conversion (collaboration layer)
+### Phase 1 — Parallel Streams ✅ (2026-04-15, not yet committed)
+- [x] Stream A: GSAP — animations.ts presets, TaskCard/TaskListItem/CalendarWidget/ModalComponent wired
+- [x] Stream B: socket.io — chatHandler, presenceHandler, Message model, MessageRouter, httpServer wrap, useSocket hook, TeamPanel, ChatPanel
+- [x] Stream C: chat:convert → creates Task or Note, broadcasts task:converted, MessageBubble hover actions
+- [x] vite-env.d.ts added — fixes import.meta.env TS errors globally
 
 ### Phase 2 — B8 + B9 (after Phase 1)
 - [ ] B8: Recurring meetings (RRULE, rruleExpander, RecurrenceSelector UI)

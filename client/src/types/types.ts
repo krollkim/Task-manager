@@ -66,3 +66,20 @@ export interface ModalProps {
   onSave: (updatedTask: Partial<Task>) => void;
   defaultDueDate?: string;
 }
+
+export interface ChatMessage {
+  _id: string;
+  roomId: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  linkedItemId: string | null;
+  linkedItemType: 'task' | 'note' | 'meeting' | null;
+  createdAt: string;
+}
+
+export interface PresenceUser {
+  userId: string;
+  name: string;
+  avatar: string | null;
+}

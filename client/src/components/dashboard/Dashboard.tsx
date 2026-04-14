@@ -6,10 +6,12 @@ import TaskList from './TaskList';
 import TaskViewToggle from './TaskViewToggle';
 import CalendarWidget from './CalendarWidget';
 import NotesWidget from './NotesWidget';
+import TeamPanel from './TeamPanel';
 import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
 import MeetingModal from '../MeetingModal';
 import NoteModal from '../NoteModal';
+import ChatPanel from '../chat/ChatPanel';
 import { useTasks } from '../../hooks/useTasks';
 import { useViewPreference } from '../../hooks/useViewPreference';
 import { useAgenda } from '../../hooks/useAgenda';
@@ -68,6 +70,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
 
   const [agendaView, setAgendaView] = useState<AgendaView>('day');
+  const [chatOpen, setChatOpen] = useState(false);
 
   const { agenda, weekAgenda, monthAgenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate, agendaView);
 
@@ -391,6 +394,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
               {/* Desktop: Right Sidebar - Calendar & Notes */}
               {!isMobile && (
                 <div className="lg:col-span-4 flex flex-col space-y-6 min-h-0 overflow-y-auto scrollbar-hide">
+                  <TeamPanel onOpenChat={() => setChatOpen(true)} />
                   <CalendarWidget
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
@@ -418,6 +422,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
             {/* Mobile Widgets - ALWAYS RENDERED outside main grid */}
             {isMobile && (
               <div className="flex flex-col space-y-6 mt-6">
+                <TeamPanel onOpenChat={() => setChatOpen(true)} />
                 <CalendarWidget
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
@@ -496,6 +501,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
           />
         )}
       </div>
+
+      <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 };

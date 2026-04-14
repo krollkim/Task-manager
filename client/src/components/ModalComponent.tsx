@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Modal from 'react-modal';
+import gsap from 'gsap';
 import { Task, ModalProps } from '../types/types';
 import '../App.css';
+import { modalEnter } from '../lib/animations';
 
 const ModalComponent: React.FC<ModalProps> = ({
   isOpen,
@@ -11,12 +13,19 @@ const ModalComponent: React.FC<ModalProps> = ({
   onSave,
   defaultDueDate
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+
   const [task, setTask] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<Task['status']>('todo');
   const [priority, setPriority] = useState<Task['priority']>('medium');
   const [dueDate, setDueDate] = useState('');
   const [estimateMinutes, setEstimateMinutes] = useState('');
+
+  useEffect(() => {
+    if (isOpen && modalRef.current) modalEnter(modalRef.current);
+    return () => { gsap.killTweensOf(modalRef.current); };
+  }, [isOpen]);
 
   useEffect(() => {
     if (taskToEdit) {
@@ -97,7 +106,7 @@ const ModalComponent: React.FC<ModalProps> = ({
       shouldCloseOnOverlayClick={true}
       shouldCloseOnEsc={true}
     >
-      <div className="pro-card-gradient pro-rounded-lg p-4 md:p-6 w-full max-w-md mx-auto relative pro-shadow-lg">
+      <div ref={modalRef} className="pro-card-gradient pro-rounded-lg p-4 md:p-6 w-full max-w-md mx-auto relative pro-shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">

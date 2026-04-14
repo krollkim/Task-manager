@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import gsap from 'gsap';
 import { Task } from '../../types/types';
+import { cardEnter } from '../../lib/animations';
 
 interface TaskCardProps {
   task: Task;
@@ -21,12 +23,19 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onQuickUpdate,
   className = ''
 }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
   const [priorityMenuOpen, setPriorityMenuOpen] = React.useState(false);
   const [priorityMenuPos, setPriorityMenuPos] = React.useState({ top: 0, left: 0 });
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
   const [datePickerPos, setDatePickerPos] = React.useState({ top: 0, left: 0 });
   const [rescheduleMenuOpen, setRescheduleMenuOpen] = React.useState(false);
   const [rescheduleMenuPos, setRescheduleMenuPos] = React.useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (cardRef.current) cardEnter(cardRef.current);
+    return () => { gsap.killTweensOf(cardRef.current); };
+  }, []);
 
   // Close chip popups on Escape
   React.useEffect(() => {
@@ -162,7 +171,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className={`
+    <div ref={cardRef} className={`
       task-glass rounded-xl
       p-5 transition-all duration-300 ease-out
       hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.12)]

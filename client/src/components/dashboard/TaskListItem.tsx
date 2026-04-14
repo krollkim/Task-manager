@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import gsap from 'gsap';
 import { Task } from '../../types/types';
 import { ListDensity } from '../../hooks/useViewPreference';
+import { listItemEnter } from '../../lib/animations';
 
 interface TaskListItemProps {
   task: Task;
@@ -22,12 +24,19 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
   onQuickUpdate,
   density
 }) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+
   const [priorityMenuOpen, setPriorityMenuOpen] = React.useState(false);
   const [priorityMenuPos, setPriorityMenuPos] = React.useState({ top: 0, left: 0 });
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
   const [datePickerPos, setDatePickerPos] = React.useState({ top: 0, left: 0 });
   const [rescheduleMenuOpen, setRescheduleMenuOpen] = React.useState(false);
   const [rescheduleMenuPos, setRescheduleMenuPos] = React.useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (itemRef.current) listItemEnter(itemRef.current);
+    return () => { gsap.killTweensOf(itemRef.current); };
+  }, []);
 
   // Close chip popups on Escape
   React.useEffect(() => {
@@ -210,6 +219,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
 
   return (
     <div
+      ref={itemRef}
       className={`
         group relative
         task-glass rounded-lg

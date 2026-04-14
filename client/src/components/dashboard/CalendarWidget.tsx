@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { AgendaData, AgendaView, WeekAgendaDay, Meeting, Task, Note } from '../../types/types';
+import { viewTransition } from '../../lib/animations';
 
 interface CalendarWidgetProps {
   selectedDate?: Date;
@@ -47,6 +49,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
+  const agendaRef = useRef<HTMLDivElement>(null);
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
 
@@ -55,6 +58,12 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     setCurrentMonth(selectedDate.getMonth());
     setCurrentYear(selectedDate.getFullYear());
   }, [selectedDate]);
+
+  // Animate agenda content area when date or view changes
+  useEffect(() => {
+    if (agendaRef.current) viewTransition(agendaRef.current);
+    return () => { gsap.killTweensOf(agendaRef.current); };
+  }, [selectedDate, agendaView]);
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -482,7 +491,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
       </div>
 
       {/* Agenda List */}
-      <div className="mt-1 max-h-48 overflow-y-auto scrollbar-hide pb-3">
+      <div ref={agendaRef} className="mt-1 max-h-48 overflow-y-auto scrollbar-hide pb-3">
         {agendaLoading ? (
           <div className="text-center py-4">
             <span className="text-white/40 text-sm">Loading...</span>

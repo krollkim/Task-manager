@@ -10,11 +10,13 @@
     "ajv-keywords": "^5.1.0",
     "axios": "^1.7.7",
     "google-auth-library": "^10.1.0",
+    "gsap": "^3.15.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
+    "socket.io-client": "^4.8.3",
     "vite": "^6.4.1",
     "web-vitals": "^2.1.4",
     "zustand": "^5.0.12"
