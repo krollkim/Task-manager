@@ -25,6 +25,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const [priorityMenuPos, setPriorityMenuPos] = React.useState({ top: 0, left: 0 });
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
   const [datePickerPos, setDatePickerPos] = React.useState({ top: 0, left: 0 });
+  const [rescheduleMenuOpen, setRescheduleMenuOpen] = React.useState(false);
+  const [rescheduleMenuPos, setRescheduleMenuPos] = React.useState({ top: 0, left: 0 });
 
   // Close chip popups on Escape
   React.useEffect(() => {
@@ -32,13 +34,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
       if (event.key === 'Escape') {
         if (priorityMenuOpen) setPriorityMenuOpen(false);
         else if (datePickerOpen) setDatePickerOpen(false);
+        else if (rescheduleMenuOpen) setRescheduleMenuOpen(false);
       }
     };
-    if (priorityMenuOpen || datePickerOpen) {
+    if (priorityMenuOpen || datePickerOpen || rescheduleMenuOpen) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [priorityMenuOpen, datePickerOpen]);
+  }, [priorityMenuOpen, datePickerOpen, rescheduleMenuOpen]);
 
   const getStatusIcon = (status: Task['status']) => {
     switch (status) {
@@ -138,6 +141,26 @@ const TaskCard: React.FC<TaskCardProps> = ({
     setDatePickerOpen(false);
   };
 
+  const handleRescheduleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPriorityMenuOpen(false);
+    setDatePickerOpen(false);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setRescheduleMenuPos({
+      top: rect.bottom + 80 > window.innerHeight ? rect.top - 80 : rect.bottom + 4,
+      left: rect.left + 140 > window.innerWidth ? rect.right - 140 : rect.left,
+    });
+    setRescheduleMenuOpen(!rescheduleMenuOpen);
+  };
+
+  const handleReschedule = (daysFromNow: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysFromNow);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    onQuickUpdate?.(task._id, { dueDate: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` });
+    setRescheduleMenuOpen(false);
+  };
+
   return (
     <div className={`
       task-glass rounded-xl
@@ -170,7 +193,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </h3>
         </div>
 
-        {/* Pass 2: Inline actions — always visible on mobile, reveal on hover desktop */}
+        {/* Inline actions — always visible on mobile, reveal on hover desktop */}
         <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
           <button
             onClick={(e) => { e.stopPropagation(); handleStatusToggle(); }}
@@ -178,6 +201,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
             className="p-1.5 rounded-lg text-green-400/70 hover:text-green-300 hover:bg-green-500/10 transition-colors duration-200"
           >
             <span className="text-sm">✓</span>
+          </button>
+          <button
+            onClick={handleRescheduleClick}
+            title="Reschedule"
+            className="p-1.5 rounded-lg text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/10 transition-colors duration-200"
+          >
+            <span className="text-sm">📅</span>
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit?.(task); }}
@@ -275,6 +305,33 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 <span>{getPriorityLabel(p)}</span>
               </button>
             ))}
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* Reschedule Portal */}
+      {rescheduleMenuOpen && createPortal(
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setRescheduleMenuOpen(false)} />
+          <div
+            className="fixed bg-slate-800/95 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl z-50 min-w-[140px] py-1"
+            style={{ top: `${rescheduleMenuPos.top}px`, left: `${rescheduleMenuPos.left}px` }}
+          >
+            <button
+              onClick={() => handleReschedule(1)}
+              className="w-full px-3 py-1.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center space-x-2"
+            >
+              <span className="text-blue-400 text-xs">→</span>
+              <span>Tomorrow</span>
+            </button>
+            <button
+              onClick={() => handleReschedule(7)}
+              className="w-full px-3 py-1.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center space-x-2"
+            >
+              <span className="text-blue-400 text-xs">→</span>
+              <span>Next Week</span>
+            </button>
           </div>
         </>,
         document.body

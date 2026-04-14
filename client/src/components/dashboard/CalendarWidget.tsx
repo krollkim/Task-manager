@@ -18,6 +18,7 @@ interface CalendarWidgetProps {
   onMeetingClick?: (meeting: Meeting) => void;
   onTaskClick?: (task: Task) => void;
   onNoteClick?: (note: Note) => void;
+  onMeetingReschedule?: (meetingId: string, newDate: string) => void;
 }
 
 const CalendarWidget: React.FC<CalendarWidgetProps> = ({
@@ -36,8 +37,16 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   onAddMeeting,
   onMeetingClick,
   onTaskClick,
-  onNoteClick
+  onNoteClick,
+  onMeetingReschedule
 }) => {
+
+  const getRescheduleDate = (daysFromNow: number): string => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysFromNow);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  };
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
 
@@ -197,10 +206,26 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   const renderAgendaItems = (dayAgenda: AgendaData) => (
     <div className="space-y-1">
       {dayAgenda.meetings.map((meeting) => (
-        <div key={meeting._id} onClick={() => onMeetingClick?.(meeting)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
-          <span className="text-purple-300 mr-2 text-xs">📅</span>
-          <span className="text-white/60 text-xs mr-2 whitespace-nowrap">{meeting.startTime || '--:--'}</span>
-          <span className="text-white text-xs truncate">{meeting.title}</span>
+        <div key={meeting._id} className="group flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+          <div className="flex items-center flex-1 min-w-0" onClick={() => onMeetingClick?.(meeting)}>
+            <span className="text-purple-300 mr-2 text-xs flex-shrink-0">📅</span>
+            <span className="text-white/60 text-xs mr-2 whitespace-nowrap flex-shrink-0">{meeting.startTime || '--:--'}</span>
+            <span className="text-white text-xs truncate">{meeting.title}</span>
+          </div>
+          {onMeetingReschedule && (
+            <div className="flex items-center space-x-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
+              <button
+                onClick={(e) => { e.stopPropagation(); onMeetingReschedule(meeting._id, getRescheduleDate(1)); }}
+                title="Move to Tomorrow"
+                className="px-1.5 py-0.5 text-[10px] text-blue-300/70 hover:text-blue-200 hover:bg-blue-500/20 rounded transition-colors"
+              >+1d</button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onMeetingReschedule(meeting._id, getRescheduleDate(7)); }}
+                title="Move to Next Week"
+                className="px-1.5 py-0.5 text-[10px] text-blue-300/70 hover:text-blue-200 hover:bg-blue-500/20 rounded transition-colors"
+              >+7d</button>
+            </div>
+          )}
         </div>
       ))}
       {dayAgenda.tasks.map((task) => (
@@ -253,10 +278,26 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
         <>
           <CategoryDivider label="Meetings" color="purple" />
           {dayAgenda.meetings.map((meeting) => (
-            <div key={meeting._id} onClick={() => onMeetingClick?.(meeting)} className="flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
-              <span className="text-purple-300 mr-2 text-xs">📅</span>
-              <span className="text-white/60 text-xs mr-2 whitespace-nowrap">{meeting.startTime || '--:--'}</span>
-              <span className="text-white text-xs truncate">{meeting.title}</span>
+            <div key={meeting._id} className="group flex items-center p-2 pro-card-gradient pro-rounded text-sm cursor-pointer hover:bg-white/10 transition-colors">
+              <div className="flex items-center flex-1 min-w-0" onClick={() => onMeetingClick?.(meeting)}>
+                <span className="text-purple-300 mr-2 text-xs flex-shrink-0">📅</span>
+                <span className="text-white/60 text-xs mr-2 whitespace-nowrap flex-shrink-0">{meeting.startTime || '--:--'}</span>
+                <span className="text-white text-xs truncate">{meeting.title}</span>
+              </div>
+              {onMeetingReschedule && (
+                <div className="flex items-center space-x-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMeetingReschedule(meeting._id, getRescheduleDate(1)); }}
+                    title="Move to Tomorrow"
+                    className="px-1.5 py-0.5 text-[10px] text-blue-300/70 hover:text-blue-200 hover:bg-blue-500/20 rounded transition-colors"
+                  >+1d</button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMeetingReschedule(meeting._id, getRescheduleDate(7)); }}
+                    title="Move to Next Week"
+                    className="px-1.5 py-0.5 text-[10px] text-blue-300/70 hover:text-blue-200 hover:bg-blue-500/20 rounded transition-colors"
+                  >+7d</button>
+                </div>
+              )}
             </div>
           ))}
         </>

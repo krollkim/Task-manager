@@ -227,6 +227,15 @@ const Dashboard: React.FC<DashboardProps> = () => {
     setMeetingModalOpen(true);
   };
 
+  const handleMeetingReschedule = async (meetingId: string, newDate: string) => {
+    try {
+      await editMeeting(meetingId, { date: newDate });
+      refetchAgenda();
+    } catch (error) {
+      console.error('Error rescheduling meeting:', error);
+    }
+  };
+
   const handleAgendaTaskClick = (task: Task) => {
     openModal(task, 'edit');
   };
@@ -399,6 +408,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     onMeetingClick={handleAgendaMeetingClick}
                     onTaskClick={handleAgendaTaskClick}
                     onNoteClick={handleAgendaNoteClick}
+                    onMeetingReschedule={handleMeetingReschedule}
                   />
                   <NotesWidget className="flex-1" refreshKey={notesRefreshKey} />
                 </div>

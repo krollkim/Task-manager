@@ -101,8 +101,12 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 - [x] Day toggle added alongside Day | Week
 - [x] Day view & Month single-click preview use `renderGroupedAgendaItems` with futuristic category separators (glowing `h-px` lines + spaced-out caps labels)
 
-### B7 — Quick Reschedule
-- [ ] Add `Move to Tomorrow` / `Move to Next Week` actions on tasks/meetings
+### B7 — Quick Reschedule ✅ (done)
+- [x] `TaskCard`: 📅 button added to inline actions row → portal dropdown with "Tomorrow" (+1 day) and "Next Week" (+7 days); calls `onQuickUpdate(id, { dueDate })`
+- [x] `TaskListItem`: same 📅 button added to `InlineActions` component (both desktop and mobile); same portal
+- [x] `CalendarWidget`: `onMeetingReschedule` prop added; meeting items in both `renderAgendaItems` and `renderGroupedAgendaItems` show hover-reveal `+1d` / `+7d` pill buttons
+- [x] `Dashboard`: `handleMeetingReschedule` → `editMeeting(id, { date })` + `refetchAgenda()`; wired to both desktop and mobile CalendarWidget instances
+- [x] No backend changes — reuses existing `PATCH /tasks/:id` and `PATCH /meetings/:id`
 
 ### B8 — Recurring Meetings
 - [ ] Add logic for daily/weekly/monthly repeating events in the DB and UI
@@ -114,4 +118,40 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 
 ---
 
-## Current Branch: `feature/calendar-b6`
+## Current Branch: `feature/calendar-b7`
+
+---
+
+## Completed Branch: `feature/tasks-ui-refactor`
+
+### Goal
+Modernize task card UI to match the CalendarWidget's pro-glass aesthetic, add inline hover actions, and communicate task priority through functional color.
+
+### Pass 1 — Glass layer, typography hierarchy, layout fix ✅ (committed)
+- [x] `.task-glass` utility in `App.css` — `rgba(255,255,255,0.05)` bg, `blur(12px)`, `rgba(255,255,255,0.1)` border; hover brightens bg + border
+- [x] `TaskCard`: replaced opaque slate bg with `task-glass`; removed hover scale (was clipping); deep shadow glow on hover; done-card opacity 55%; done title white/35 strikethrough; description white/50; meta row white/40
+- [x] `TaskListItem`: same `task-glass` base; title `font-semibold`; done title white/35 strikethrough; description white/50; meta row white/40 — desktop and mobile layouts
+- [x] `Dashboard`: added `overflow-y-auto scrollbar-hide` to right sidebar so NotesWidget is reachable after CalendarWidget grew
+
+### Pass 2 — Inline hover actions ✅ (committed)
+- [x] Removed old `⋮` popup portal menu from both components
+- [x] `TaskCard`: inline ✓ / ✏️ / 🗑️ row — `opacity-0 md:group-hover:opacity-100`, always visible on mobile
+- [x] `TaskListItem`: `<InlineActions alwaysVisible>` component — same reveal pattern
+- [x] Status toggle upgraded to 3-way cycle: `todo → in-progress → done → todo`
+- [x] `hover:-translate-y-1` lift with deep shadow on both card types
+
+### Pass 3 — Functional color / priority glow ✅ (committed)
+- [x] `getPriorityCardStyle()` in both components — border + box-shadow glow driven by priority
+  - urgent: red glow `rgba(220,38,38,0.35)` + `border-red-500/40`
+  - high: orange glow `rgba(249,115,22,0.3)` + `border-orange-500/35`
+  - medium: blue glow `rgba(96,165,250,0.25)` + `border-blue-400/30`
+- [x] All glows suppressed when `status === 'done'`
+
+### Files Touched
+| File | Change |
+|---|---|
+| `client/src/App.css` | Added `.task-glass` utility |
+| `client/src/components/dashboard/TaskCard.tsx` | All 3 passes |
+| `client/src/components/dashboard/TaskListItem.tsx` | All 3 passes |
+| `client/src/components/dashboard/Dashboard.tsx` | Pass 1 sidebar scroll fix |
+
