@@ -1,98 +1,65 @@
-const API_BASE_URL = 'http://localhost:5001';
+import axios from 'axios';
 
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(errorData || `HTTP error! status: ${response.status}`);
-  }
-  return await response.json();
-};
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
+const api = axios.create({
+  baseURL: apiUrl,
+  withCredentials: true,
+});
 
 export const NoteServices = {
   // Get all notes
   getAllNotes: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notes`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return await handleResponse(response);
+      const { data } = await api.get('/notes');
+      return data;
     } catch (error) {
       console.error('Error fetching notes:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Error fetching notes');
     }
   },
 
   // Create a new note
   createNote: async (noteData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notes`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(noteData),
-      });
-      return await handleResponse(response);
+      const { data } = await api.post('/notes', noteData);
+      return data;
     } catch (error) {
       console.error('Error creating note:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Error creating note');
     }
   },
 
   // Update an existing note
   updateNote: async (noteId, noteData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notes/${noteId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(noteData),
-      });
-      return await handleResponse(response);
+      const { data } = await api.patch(`/notes/${noteId}`, noteData);
+      return data;
     } catch (error) {
       console.error('Error updating note:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Error updating note');
     }
   },
 
   // Delete a note
   deleteNote: async (noteId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notes/${noteId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return await handleResponse(response);
+      const { data } = await api.delete(`/notes/${noteId}`);
+      return data;
     } catch (error) {
       console.error('Error deleting note:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Error deleting note');
     }
   },
 
   // Get a specific note
   getNote: async (noteId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/notes/${noteId}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return await handleResponse(response);
+      const { data } = await api.get(`/notes/${noteId}`);
+      return data;
     } catch (error) {
       console.error('Error fetching note:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Error fetching note');
     }
   },
 };

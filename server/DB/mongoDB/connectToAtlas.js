@@ -4,10 +4,10 @@ import config from "config";
 
 const userName = config.get("DB_NAME");
 const password = config.get("DB_PASSWORD");
-const clusterUrl = "cluster0.mlv7t.mongodb.net";
+const clusterUrl = "taskmanagerclusterv2.l9xc3t6.mongodb.net";
 const dbName = "task_manager";
 
-export const uri = `mongodb+srv://${userName}:${password}@${clusterUrl}/${dbName}?retryWrites=true&w=majority`;
+export const uri = `mongodb+srv://${userName}:${password}@${clusterUrl}/${dbName}?retryWrites=true&w=majority&appName=TaskManagerClusterV2`;
 
 mongoose
   .connect(uri)

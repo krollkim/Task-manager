@@ -109,16 +109,56 @@ Add a full Calendar Hub: agenda display, quick-add, meeting/note modals, click-t
 - [x] No backend changes — reuses existing `PATCH /tasks/:id` and `PATCH /meetings/:id`
 
 ### B8 — Recurring Meetings
-- [ ] Add logic for daily/weekly/monthly repeating events in the DB and UI
+- [ ] Handled in `feature/architecture-v2` — RRULE standard, see vivid-finding-aurora.md Phase 2
 
 ### B9 — Global Search
-- [ ] Extend existing search to cover the Calendar Hub (meetings/notes/tasks)
+- [ ] Handled in `feature/architecture-v2` — unified /search endpoint + SearchDropdown, see vivid-finding-aurora.md Phase 2
 
 > Note: B10 (Task Search) is already implemented and working in the dashboard.
 
 ---
 
-## Current Branch: `feature/calendar-b7`
+## Current Branch: `feature/architecture-v2`
+
+### Goal
+Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP animations, recurring meetings, global search. Full blueprint in `~/.claude/plans/vivid-finding-aurora.md`.
+
+### Phase 0 — Foundation ✅ (2026-04-14, not yet committed)
+- [x] Zustand 5.0.12 — `client/src/store/useAppStore.ts` (4 slices: tasks, notes, agenda, UI)
+- [x] DB schema extended — cross-link fields + text indexes on Task, Note, Meeting models
+- [x] `GET /agenda/month?year=&month=` — single query replaces ~30 parallel day calls
+- [x] `GET /search?q=&types=&limit=` — parallel MongoDB $text search across all 3 collections
+- [x] NoteServices migrated from fetch → axios (VITE_API_URL, withCredentials)
+- [x] MongoDB cluster migrated → `taskmanagerclusterv2.l9xc3t6.mongodb.net`
+- [x] Live verified: /search returns tasks + notes + meetings with score/snippet/type fields ✅
+
+### Phase 1 — Parallel Streams (next)
+- [ ] Stream A: GSAP animations (task cards, agenda items, modals, calendar transitions)
+- [ ] Stream B: socket.io chat infrastructure + team presence panel
+- [ ] Stream C: message → task/note conversion (collaboration layer)
+
+### Phase 2 — B8 + B9 (after Phase 1)
+- [ ] B8: Recurring meetings (RRULE, rruleExpander, RecurrenceSelector UI)
+- [ ] B9: Global search UI (useSearch hook, SearchDropdown, Header integration)
+
+### Phase 3 — Performance Hardening
+- [ ] React.lazy modals, skeleton loaders, Zustand selector audit, bundle < 400kb
+
+---
+
+## Files Touched (Phase 0)
+| File | Change |
+|---|---|
+| `server/models/mongoDB/Task.js` | Cross-link fields + text index |
+| `server/models/mongoDB/Note.js` | Cross-link fields + text index |
+| `server/models/mongoDB/Meeting.js` | Cross-link fields + rrule fields + text index |
+| `server/routes/AgendaRouter.js` | Added GET /agenda/month |
+| `server/routes/SearchRouter.js` | NEW — unified text search |
+| `server/index.js` | Mount SearchRouter at /search |
+| `server/DB/mongoDB/connectToAtlas.js` | New cluster URL + appName |
+| `server/config/default.json` | New DB credentials |
+| `client/src/store/useAppStore.ts` | NEW — Zustand store (4 slices) |
+| `client/src/services/NoteServices.js` | fetch → axios migration |
 
 ---
 

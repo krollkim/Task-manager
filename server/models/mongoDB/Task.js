@@ -48,7 +48,13 @@ const taskSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    linkedMeetingId: { type: String, default: null },
+    linkedNoteIds:   { type: [String], default: [] },
+    tags:            { type: [String], default: [] },
+    linkedMessageId: { type: String, default: null },
 });
+
+taskSchema.index({ task: 'text', description: 'text' });
 
 export default mongoose.model("Task", taskSchema);
 

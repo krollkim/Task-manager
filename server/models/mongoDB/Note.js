@@ -31,6 +31,12 @@ const noteSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    linkedTaskId:    { type: String, default: null },
+    linkedMeetingId: { type: String, default: null },
+    tags:            { type: [String], default: [] },
+    linkedMessageId: { type: String, default: null },
 });
+
+noteSchema.index({ title: 'text', content: 'text' });
 
 export default mongoose.model("Note", noteSchema);

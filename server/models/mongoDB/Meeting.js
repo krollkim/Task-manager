@@ -35,6 +35,14 @@ const meetingSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    linkedTaskIds:   { type: [String], default: [] },
+    linkedNoteIds:   { type: [String], default: [] },
+    tags:            { type: [String], default: [] },
+    rrule:           { type: String, default: null },
+    recurringId:     { type: String, default: null },
+    isRecurringBase: { type: Boolean, default: false },
 });
+
+meetingSchema.index({ title: 'text', description: 'text' });
 
 export default mongoose.model("Meeting", meetingSchema);

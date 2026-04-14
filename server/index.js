@@ -7,6 +7,7 @@ import TaskRouter from './routes/TaskRouter.js';
 import NoteRouter from './routes/NoteRouter.js';
 import MeetingRouter from './routes/MeetingRouter.js';
 import AgendaRouter from './routes/AgendaRouter.js';
+import SearchRouter from './routes/SearchRouter.js';
 import authRouter from './routes/Auth.js';
 import {connectToDb} from './DB/dbService.js';
 
@@ -39,6 +40,7 @@ app.use('/tasks', TaskRouter);
 app.use('/notes', NoteRouter);
 app.use('/meetings', MeetingRouter);
 app.use('/agenda', AgendaRouter);
+app.use('/search', SearchRouter);
 app.use('/', authRouter);
 
 app.get('/', (req, res) => res.send("ok"));
