@@ -138,6 +138,15 @@ Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP an
 - [x] Stream C: chat:convert → creates Task or Note, broadcasts task:converted, MessageBubble hover actions
 - [x] vite-env.d.ts added — fixes import.meta.env TS errors globally
 
+### Phase 1 — Stream B+C Extensions ✅ (2026-04-15, staged)
+- [x] SocketContext singleton — `client/src/contexts/SocketContext.tsx`; SocketProvider owns one socket instance, `useSocket.ts` is now a re-export shim; eliminates double-socket bug
+- [x] ChatPanel fix — `currentUserId` now from `useAuth()` (was empty string placeholder); own messages render correctly
+- [x] chatHandler fix — `socket.join('general')` fires before event handlers (no dropped first message); `teamId:'default'` on Task created via chat:convert; double-convert guard
+- [x] Invite system — `server/models/mongoDB/Invite.js` (UUID token, 7-day TTL); `server/routes/TeamsRouter.js` (POST /teams/invite with duplicate guard, GET /teams/invite/:token); mounted at `/teams`
+- [x] TeamPanel invite UI — toggle form, email input, POST /teams/invite, displays inviteUrl on success
+- [x] Task teamId — `server/models/mongoDB/Task.js` adds `teamId` field (String, default null) for workspace-scoped tasks
+- [x] Dashboard wrapped with `<SocketProvider>` — all children share one socket connection
+
 ### Phase 2 — B8 + B9 (after Phase 1)
 - [ ] B8: Recurring meetings (RRULE, rruleExpander, RecurrenceSelector UI)
 - [ ] B9: Global search UI (useSearch hook, SearchDropdown, Header integration)

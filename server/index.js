@@ -12,6 +12,7 @@ import AgendaRouter from './routes/AgendaRouter.js';
 import SearchRouter from './routes/SearchRouter.js';
 import MessageRouter from './routes/MessageRouter.js';
 import authRouter from './routes/Auth.js';
+import TeamsRouter from './routes/TeamsRouter.js';
 import {connectToDb} from './DB/dbService.js';
 import { initChat } from './sockets/chatHandler.js';
 
@@ -51,6 +52,7 @@ app.use('/meetings', MeetingRouter);
 app.use('/agenda', AgendaRouter);
 app.use('/search', SearchRouter);
 app.use('/messages', MessageRouter);
+app.use('/teams', TeamsRouter);
 app.use('/', authRouter);
 
 app.get('/', (req, res) => res.send("ok"));

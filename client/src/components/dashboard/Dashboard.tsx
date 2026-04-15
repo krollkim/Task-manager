@@ -12,6 +12,7 @@ import ModalComponent from '../ModalComponent';
 import MeetingModal from '../MeetingModal';
 import NoteModal from '../NoteModal';
 import ChatPanel from '../chat/ChatPanel';
+import { SocketProvider } from '../../contexts/SocketContext';
 import { useTasks } from '../../hooks/useTasks';
 import { useViewPreference } from '../../hooks/useViewPreference';
 import { useAgenda } from '../../hooks/useAgenda';
@@ -249,6 +250,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   };
 
   return (
+    <SocketProvider>
     <div className={`${isMobile ? 'min-h-screen' : 'h-screen'} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${isMobile ? '' : 'overflow-hidden'}`}>
       <div className={`max-w-[1800px] mx-auto ${isMobile ? '' : 'h-full'} p-4 pb-20 md:pb-4 box-border`}>
         <div className={`flex gap-6 ${isMobile ? 'min-h-screen' : 'h-full'}`}>
@@ -504,6 +506,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
       <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
+    </SocketProvider>
   );
 };
 

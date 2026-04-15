@@ -52,6 +52,7 @@ const taskSchema = new mongoose.Schema({
     linkedNoteIds:   { type: [String], default: [] },
     tags:            { type: [String], default: [] },
     linkedMessageId: { type: String, default: null },
+    teamId:          { type: String, default: null },
 });
 
 taskSchema.index({ task: 'text', description: 'text' });

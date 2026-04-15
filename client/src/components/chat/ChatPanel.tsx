@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../../hooks/useSocket';
+import { useAuth } from '../auth/AuthContext';
 import MessageBubble from './MessageBubble';
 
 interface ChatPanelProps {
@@ -11,6 +12,7 @@ const ROOM_ID = 'general';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
   const { messages, sendMessage, convertMessage, fetchHistory } = useSocket();
+  const { user } = useAuth();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [inputText, setInputText] = useState('');
 
@@ -40,8 +42,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Placeholder: real app would derive senderId from auth context
-  const currentUserId = '';
+  const currentUserId = user?.id ?? '';
 
   return (
     <div

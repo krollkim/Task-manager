@@ -27,6 +27,9 @@ export const initChat = (io) => {
       // Notify others
       socket.broadcast.emit('presence:join', userData);
 
+      // Join general room before registering event handlers (avoids race condition)
+      socket.join('general');
+
       // chat:send
       socket.on('chat:send', async ({ roomId = 'general', text }) => {
         if (!text || typeof text !== 'string' || text.trim().length === 0) return;
@@ -48,16 +51,19 @@ export const initChat = (io) => {
         if (!msg || msg.linkedItemId) return; // already converted
         let created;
         if (type === 'task') {
-          created = await Task.create({ _id: uuidv4(), task: msg.text.slice(0, 120), userId: userData.userId, linkedMessageId: messageId });
+          created = await Task.create({
+            _id: uuidv4(),
+            task: msg.text.slice(0, 120),
+            userId: userData.userId,
+            linkedMessageId: messageId,
+            teamId: 'default',
+          });
         } else {
           created = await Note.create({ _id: uuidv4(), title: msg.text.slice(0, 120), content: '', userId: userData.userId, linkedMessageId: messageId });
         }
         await Message.findByIdAndUpdate(messageId, { linkedItemId: created._id, linkedItemType: type });
         io.to(msg.roomId).emit('task:converted', { messageId, item: created, itemType: type });
       });
-
-      // Join general room
-      socket.join('general');
 
       // Disconnect
       socket.on('disconnect', () => {
