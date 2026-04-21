@@ -6,14 +6,16 @@ interface HeaderProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   onMenuClick?: () => void;
+  onOpenPalette?: () => void;
   isMobile?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  searchValue = '', 
-  onSearchChange, 
+const Header: React.FC<HeaderProps> = ({
+  searchValue = '',
+  onSearchChange,
   onMenuClick,
-  isMobile = false 
+  onOpenPalette,
+  isMobile = false,
 }) => {
   const [localSearchValue, setLocalSearchValue] = useState(searchValue);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -50,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         )}
         
-        {/* Search Bar - Hide on very small screens, show icon only */}
+        {/* Search Bar — click opens Command Palette; typing still filters local tasks */}
         <div className="relative flex-1 max-w-lg">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <span className="text-white/60 text-lg">🔍</span>
@@ -59,15 +61,17 @@ const Header: React.FC<HeaderProps> = ({
             type="text"
             value={localSearchValue}
             onChange={handleSearchChange}
-            placeholder={isMobile ? "Search..." : "Search tasks, notes, or anything..."}
+            onFocus={onOpenPalette}
+            placeholder={isMobile ? "Search… (⌘K)" : "Search tasks, notes, messages… (⌘K / Ctrl+Q)"}
             className="
               w-full pl-10 pr-4 py-2 text-sm md:text-base
               bg-white/10 text-white placeholder-white/60
               border border-white/20 rounded-lg
               focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent
               transition-all duration-300
-              backdrop-blur-sm
+              backdrop-blur-sm cursor-pointer
             "
+            readOnly
           />
         </div>
       </div>

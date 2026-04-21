@@ -80,15 +80,16 @@ const Dashboard: React.FC<DashboardProps> = () => {
   // CMD+K / Ctrl+K global shortcut (+ Ctrl+Q fallback for Windows browsers that intercept Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isK = (e.metaKey || e.ctrlKey) && e.key === 'k';
-      const isQ = e.ctrlKey && e.key === 'q';
+      const key = e.key.toLowerCase();
+      const isK = (e.metaKey || e.ctrlKey) && key === 'k';
+      const isQ = e.ctrlKey && key === 'q';
       if (isK || isQ) {
         e.preventDefault();
         setPaletteOpen((prev) => !prev);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
   // View preferences (widget-ready)
@@ -295,6 +296,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
               searchValue={searchValue}
               onSearchChange={setSearchValue}
               onMenuClick={handleMenuClick}
+              onOpenPalette={() => setPaletteOpen(true)}
               isMobile={isMobile}
             />
 

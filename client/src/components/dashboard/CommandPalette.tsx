@@ -64,7 +64,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   // Wire the debounced search effect
   useSearch();
 
-  // Animate panel in on open
+  // Clear any stale query on mount (guards against crash-loop from leftover store state)
+  useEffect(() => {
+    setSearchQuery('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Animate panel in on open; clear query on close
   useEffect(() => {
     if (isOpen && panelRef.current) {
       modalEnter(panelRef.current);
@@ -107,10 +113,10 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   const sections: Array<{ key: SectionKey; items: ResultItem[] }> = searchResults
     ? (
         [
-          { key: 'tasks' as SectionKey, items: searchResults.tasks as ResultItem[] },
-          { key: 'notes' as SectionKey, items: searchResults.notes as ResultItem[] },
-          { key: 'meetings' as SectionKey, items: searchResults.meetings as ResultItem[] },
-          { key: 'messages' as SectionKey, items: searchResults.messages as ResultItem[] },
+          { key: 'tasks' as SectionKey, items: (searchResults.tasks ?? []) as ResultItem[] },
+          { key: 'notes' as SectionKey, items: (searchResults.notes ?? []) as ResultItem[] },
+          { key: 'meetings' as SectionKey, items: (searchResults.meetings ?? []) as ResultItem[] },
+          { key: 'messages' as SectionKey, items: (searchResults.messages ?? []) as ResultItem[] },
         ] as Array<{ key: SectionKey; items: ResultItem[] }>
       ).filter((s) => s.items.length > 0)
     : [];
