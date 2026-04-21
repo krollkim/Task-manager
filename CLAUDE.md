@@ -147,9 +147,19 @@ Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP an
 - [x] Task teamId — `server/models/mongoDB/Task.js` adds `teamId` field (String, default null) for workspace-scoped tasks
 - [x] Dashboard wrapped with `<SocketProvider>` — all children share one socket connection
 
-### Phase 2 — B8 + B9 (after Phase 1)
+### Phase 2 — B9 Command Palette + Invite Flow ✅ (2026-04-21, staged)
+- [x] `SearchResults` type in `types.ts` — typed buckets for task/note/meeting/message results with snippet + score
+- [x] `useSearch.ts` — debounced 300ms axios hook (min 2 chars), writes to Zustand `searchResults` + `searchLoading`
+- [x] `CommandPalette.tsx` — CMD+K / Ctrl+Q modal; glass panel; results grouped by type; GSAP `staggerEnter` on result change; click opens correct modal; ESC + backdrop close
+- [x] `Dashboard.tsx` — global `keydown` listener (Cmd+K + Ctrl+Q fallback for Windows); `<CommandPalette>` mounted with all modal open callbacks
+- [x] Message text index — `Message.js` indexed on `text + senderName`; messages added as 4th bucket in `/search`
+- [x] `TeamMember.js` (NEW) — userId + workspaceId + role, unique compound index
+- [x] `TeamsRouter.js` — `POST /teams/invite/:token/accept`: validates token, marks accepted, upserts TeamMember record
+- [x] `JoinPage.tsx` (NEW) — `/join/:token` public route: validates invite, auto-accepts if logged in, shows register/login flow if not
+- [x] `AppRouter.tsx` — `/join/:token` route wired to JoinPage
+
+### Phase 2 — B8 (next)
 - [ ] B8: Recurring meetings (RRULE, rruleExpander, RecurrenceSelector UI)
-- [ ] B9: Global search UI (useSearch hook, SearchDropdown, Header integration)
 
 ### Phase 3 — Performance Hardening
 - [ ] React.lazy modals, skeleton loaders, Zustand selector audit, bundle < 400kb

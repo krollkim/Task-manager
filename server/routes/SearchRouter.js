@@ -3,11 +3,12 @@ import auth from '../middlewares/auth.js';
 import Task from '../models/mongoDB/Task.js';
 import Note from '../models/mongoDB/Note.js';
 import Meeting from '../models/mongoDB/Meeting.js';
+import Message from '../models/mongoDB/Message.js';
 import { handleError } from '../utils/handleErrors.js';
 
 const router = express.Router();
 
-const VALID_TYPES = ['tasks', 'notes', 'meetings'];
+const VALID_TYPES = ['tasks', 'notes', 'meetings', 'messages'];
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
@@ -68,10 +69,21 @@ router.get('/', auth, async (req, res) => {
             typeOrder.push('meetings');
         }
 
+        if (types.includes('messages')) {
+            // Messages are room-scoped, not user-scoped — search all accessible rooms
+            queryPromises.push(
+                Message.find(textQuery, textProjection)
+                    .sort(textSort)
+                    .limit(limit)
+                    .lean()
+            );
+            typeOrder.push('messages');
+        }
+
         const rawResults = await Promise.all(queryPromises);
 
         // Map raw results back to their type buckets and add snippet + type fields
-        const grouped = { tasks: [], notes: [], meetings: [] };
+        const grouped = { tasks: [], notes: [], meetings: [], messages: [] };
 
         rawResults.forEach((docs, idx) => {
             const type = typeOrder[idx];
@@ -83,6 +95,8 @@ router.get('/', auth, async (req, res) => {
                     snippet = (doc.content || doc.title || '').slice(0, 100);
                 } else if (type === 'meetings') {
                     snippet = (doc.description || doc.title || '').slice(0, 100);
+                } else if (type === 'messages') {
+                    snippet = (doc.text || '').slice(0, 100);
                 }
                 return { ...doc, type: type.slice(0, -1), snippet }; // 'tasks'->'task', etc.
             });
@@ -93,12 +107,14 @@ router.get('/', auth, async (req, res) => {
             ...grouped.tasks,
             ...grouped.notes,
             ...grouped.meetings,
+            ...grouped.messages,
         ].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, limit);
 
         // Re-bucket the merged+sorted items back into grouped response
-        const response = { tasks: [], notes: [], meetings: [], total: 0 };
+        const response = { tasks: [], notes: [], meetings: [], messages: [], total: 0 };
         for (const item of allItems) {
-            const bucket = item.type + 's'; // 'task'->'tasks', etc.
+            // 'task'->'tasks', 'message'->'messages', etc.
+            const bucket = item.type === 'message' ? 'messages' : item.type + 's';
             if (response[bucket]) {
                 response[bucket].push(item);
             }

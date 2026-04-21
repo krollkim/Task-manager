@@ -7,6 +7,7 @@ import {
   AgendaData,
   AgendaView,
   WeekAgendaDay,
+  SearchResults,
 } from '../types/types';
 
 interface AppStore {
@@ -33,12 +34,12 @@ interface AppStore {
   selectedDate: Date;
   agendaView: AgendaView;
   searchQuery: string;
-  searchResults: null | { tasks: Task[]; notes: Note[]; meetings: Meeting[] };
+  searchResults: SearchResults | null;
   searchLoading: boolean;
   setSelectedDate: (d: Date) => void;
   setAgendaView: (v: AgendaView) => void;
   setSearchQuery: (q: string) => void;
-  setSearchResults: (r: AppStore['searchResults']) => void;
+  setSearchResults: (r: SearchResults | null) => void;
   setSearchLoading: (loading: boolean) => void;
 }
 

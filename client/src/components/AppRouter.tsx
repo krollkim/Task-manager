@@ -5,6 +5,7 @@ import Login from './auth/Login';
 import Register from './auth/Register';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import JoinPage from '../pages/JoinPage';
 
 // Component that handles routing logic with access to auth context
 const AppRoutes: React.FC = () => {
@@ -27,14 +28,17 @@ const AppRoutes: React.FC = () => {
       />
 
       {/* Protected Routes */}
-      <Route 
-        path="/dashboard" 
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
-        } 
+        }
       />
+
+      {/* Public — invite acceptance */}
+      <Route path="/join/:token" element={<JoinPage />} />
 
       {/* Default Route */}
       <Route 

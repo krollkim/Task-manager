@@ -1,6 +1,7 @@
 import express from 'express';
 import auth from '../middlewares/auth.js';
 import Invite from '../models/mongoDB/Invite.js';
+import TeamMember from '../models/mongoDB/TeamMember.js';
 import { handleError } from '../utils/handleErrors.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -47,6 +48,35 @@ router.get('/invite/:token', async (req, res) => {
       return handleError(res, 404, 'Invite link is invalid or has expired');
     }
     return res.status(200).json({ email: invite.email, workspaceId: invite.workspaceId });
+  } catch (err) {
+    return handleError(res, 500, err.message);
+  }
+});
+
+// POST /teams/invite/:token/accept — logged-in user accepts an invite
+router.post('/invite/:token/accept', auth, async (req, res) => {
+  try {
+    const invite = await Invite.findOne({ token: req.params.token, status: 'pending' });
+    if (!invite || invite.expiresAt < new Date()) {
+      return handleError(res, 404, 'Invite link is invalid or has expired');
+    }
+
+    // Mark invite accepted
+    invite.status = 'accepted';
+    await invite.save();
+
+    // Create TeamMember record (upsert — idempotent if accepted twice)
+    const existing = await TeamMember.findOne({ userId: req.user.id, workspaceId: invite.workspaceId });
+    if (!existing) {
+      await TeamMember.create({
+        _id: uuidv4(),
+        userId: req.user.id,
+        workspaceId: invite.workspaceId,
+        role: 'member',
+      });
+    }
+
+    return res.status(200).json({ success: true, workspaceId: invite.workspaceId });
   } catch (err) {
     return handleError(res, 500, err.message);
   }

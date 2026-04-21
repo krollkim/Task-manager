@@ -12,6 +12,7 @@ import ModalComponent from '../ModalComponent';
 import MeetingModal from '../MeetingModal';
 import NoteModal from '../NoteModal';
 import ChatPanel from '../chat/ChatPanel';
+import CommandPalette from './CommandPalette';
 import { SocketProvider } from '../../contexts/SocketContext';
 import { useTasks } from '../../hooks/useTasks';
 import { useViewPreference } from '../../hooks/useViewPreference';
@@ -72,8 +73,23 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const [agendaView, setAgendaView] = useState<AgendaView>('day');
   const [chatOpen, setChatOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const { agenda, weekAgenda, monthAgenda, loading: agendaLoading, isEmpty: agendaEmpty, refetch: refetchAgenda } = useAgenda(selectedDate, agendaView);
+
+  // CMD+K / Ctrl+K global shortcut (+ Ctrl+Q fallback for Windows browsers that intercept Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isK = (e.metaKey || e.ctrlKey) && e.key === 'k';
+      const isQ = e.ctrlKey && e.key === 'q';
+      if (isK || isQ) {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // View preferences (widget-ready)
   const { viewMode, listDensity, setViewMode, setListDensity } = useViewPreference();
@@ -505,6 +521,15 @@ const Dashboard: React.FC<DashboardProps> = () => {
       </div>
 
       <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+
+      <CommandPalette
+        isOpen={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onOpenTask={(task) => { setPaletteOpen(false); openModal(task, 'edit'); }}
+        onOpenNote={(note) => { setPaletteOpen(false); setNoteToEdit(note); setNoteModalOpen(true); }}
+        onOpenMeeting={(meeting) => { setPaletteOpen(false); setMeetingToEdit(meeting); setMeetingModalOpen(true); }}
+        onOpenChat={() => { setPaletteOpen(false); setChatOpen(true); }}
+      />
     </div>
     </SocketProvider>
   );

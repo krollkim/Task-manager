@@ -83,3 +83,36 @@ export interface PresenceUser {
   name: string;
   avatar: string | null;
 }
+
+// Search
+export interface SearchResultTask extends Task {
+  type: 'task';
+  snippet: string;
+  score?: number;
+}
+
+export interface SearchResultNote extends Note {
+  type: 'note';
+  snippet: string;
+  score?: number;
+}
+
+export interface SearchResultMeeting extends Meeting {
+  type: 'meeting';
+  snippet: string;
+  score?: number;
+}
+
+export interface SearchResultMessage extends ChatMessage {
+  type: 'message';
+  snippet: string;
+  score?: number;
+}
+
+export interface SearchResults {
+  tasks: SearchResultTask[];
+  notes: SearchResultNote[];
+  meetings: SearchResultMeeting[];
+  messages: SearchResultMessage[];
+  total: number;
+}

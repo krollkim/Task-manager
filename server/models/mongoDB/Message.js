@@ -12,4 +12,6 @@ const messageSchema = new mongoose.Schema({
   createdAt:     { type: Date, default: Date.now },
 });
 
+messageSchema.index({ text: 'text', senderName: 'text' });
+
 export default mongoose.model('Message', messageSchema);
