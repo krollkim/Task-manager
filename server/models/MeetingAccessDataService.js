@@ -72,9 +72,11 @@ const editMeeting = async (meetingId, updatedData, userId) => {
 
             editedMeeting.title = updatedData.title || editedMeeting.title;
             if (updatedData.description !== undefined) editedMeeting.description = updatedData.description;
-            if (updatedData.date !== undefined) editedMeeting.date = updatedData.date;
-            if (updatedData.startTime !== undefined) editedMeeting.startTime = updatedData.startTime;
-            if (updatedData.endTime !== undefined) editedMeeting.endTime = updatedData.endTime;
+            if (updatedData.date        !== undefined) editedMeeting.date        = updatedData.date;
+            if (updatedData.startTime   !== undefined) editedMeeting.startTime   = updatedData.startTime;
+            if (updatedData.endTime     !== undefined) editedMeeting.endTime     = updatedData.endTime;
+            if (updatedData.rrule       !== undefined) { editedMeeting.rrule = updatedData.rrule; editedMeeting.isRecurringBase = !!updatedData.rrule; }
+            if (updatedData.exceptedDates !== undefined) editedMeeting.exceptedDates = updatedData.exceptedDates;
 
             await editedMeeting.save();
             return editedMeeting.toObject();

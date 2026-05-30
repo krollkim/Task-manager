@@ -31,7 +31,16 @@ export interface Meeting {
   startTime?: string;
   endTime?: string;
   createdAt: string;
+  // Recurrence fields
+  rrule?: string | null;
+  recurringId?: string | null;
+  isRecurringBase?: boolean;
+  isRecurringInstance?: boolean;  // true only on virtual expanded instances (never stored)
+  exceptedDates?: string[];
 }
+
+export type RecurrenceFreq = 'none' | 'daily' | 'weekly' | 'monthly';
+export type RecurringEditScope = 'this' | 'following' | 'all';
 
 export interface Note {
   _id: string;

@@ -41,6 +41,7 @@ const meetingSchema = new mongoose.Schema({
     rrule:           { type: String, default: null },
     recurringId:     { type: String, default: null },
     isRecurringBase: { type: Boolean, default: false },
+    exceptedDates:   { type: [String], default: [] },  // YYYY-MM-DD dates skipped by expander
 });
 
 meetingSchema.index({ title: 'text', description: 'text' });

@@ -61,3 +61,22 @@ export const deleteMeeting = async (id) => {
         throw new Error(error.response?.data?.message || "Error deleting meeting");
     }
 };
+
+/**
+ * Scoped edit/delete for recurring meetings.
+ * @param {string} baseId   - The _id of the isRecurringBase meeting
+ * @param {{ scope: 'this'|'following', action: 'edit'|'delete', date: string, data?: object }} params
+ */
+export const editRecurringMeeting = async (baseId, { scope, action, date, data }) => {
+    try {
+        const { data: result } = await api.patch(`/meetings/${baseId}/recurring`, {
+            scope,
+            action,
+            date,
+            data,
+        });
+        return result;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || "Error editing recurring meeting");
+    }
+};

@@ -178,12 +178,13 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           onClick={() => handleDateClick(day)}
           onDoubleClick={() => { handleDateClick(day); onAgendaViewChange?.('day'); }}
           className={`
-            h-10 w-8 flex flex-col items-center justify-start pt-1 rounded-lg text-sm font-medium transition-all duration-200
-            hover:scale-110 hover:bg-white/20
+            h-16 px-2 py-2 flex flex-col items-center justify-start rounded border text-sm font-medium transition-all duration-200
+            hover:bg-white/10 hover:border-white/40
+            border-white/20
             ${isToday(day)
-              ? 'bg-white/30 text-white font-bold'
+              ? 'bg-white/20 text-white font-bold border-white/40'
               : isSelectedDate(day)
-              ? 'pro-button-gradient text-white'
+              ? 'pro-button-gradient text-white border-white/60'
               : 'text-white/80 hover:text-white'
             }
           `}
@@ -220,6 +221,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
             <span className="text-purple-300 mr-2 text-xs flex-shrink-0">📅</span>
             <span className="text-white/60 text-xs mr-2 whitespace-nowrap flex-shrink-0">{meeting.startTime || '--:--'}</span>
             <span className="text-white text-xs truncate">{meeting.title}</span>
+            {(meeting.isRecurringBase || meeting.isRecurringInstance) && (
+              <span className="ml-1.5 text-purple-400/70 text-[10px] flex-shrink-0" title="Recurring">↻</span>
+            )}
           </div>
           {onMeetingReschedule && (
             <div className="flex items-center space-x-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
@@ -292,6 +296,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
                 <span className="text-purple-300 mr-2 text-xs flex-shrink-0">📅</span>
                 <span className="text-white/60 text-xs mr-2 whitespace-nowrap flex-shrink-0">{meeting.startTime || '--:--'}</span>
                 <span className="text-white text-xs truncate">{meeting.title}</span>
+                {(meeting.isRecurringBase || meeting.isRecurringInstance) && (
+                  <span className="ml-1.5 text-purple-400/70 text-[10px] flex-shrink-0" title="Recurring">↻</span>
+                )}
               </div>
               {onMeetingReschedule && (
                 <div className="flex items-center space-x-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">

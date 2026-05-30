@@ -4,6 +4,15 @@
 When starting any new feature, document the plan here.
 Mark each step `[x]` when complete. Never close the file — this is our shared source of truth.
 
+## 📚 Documentation & Immediate Action
+**👉 START HERE:** [`docs/ACTION-PLAN.md`](./docs/ACTION-PLAN.md) — What to do today
+
+Professional documentation:
+- **[Testing Plan](./docs/testing/e2e-recurring-meetings.md)** — E2E test procedure for recurring meetings (10 phases)
+- **[Security Checklist](./docs/security/checklist.md)** — Pre-commit security verification
+- **[Architecture Phases](./docs/architecture/phases.md)** — Full Phase 0–4 plan and status
+- **[Next.js Migration Plan](./docs/migration/nextjs-migration-plan.md)** — Detailed 14-day refactoring guide
+
 ---
 
 ## Current Branch: `feature/calandar-b4`
@@ -158,8 +167,18 @@ Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP an
 - [x] `JoinPage.tsx` (NEW) — `/join/:token` public route: validates invite, auto-accepts if logged in, shows register/login flow if not
 - [x] `AppRouter.tsx` — `/join/:token` route wired to JoinPage
 
-### Phase 2 — B8 (next)
-- [ ] B8: Recurring meetings (RRULE, rruleExpander, RecurrenceSelector UI)
+### Phase 2 — B8 Recurring Meetings ✅ (2026-04-21, staged)
+- [x] `server/models/mongoDB/Meeting.js` — `exceptedDates: [String]` field added
+- [x] `server/utils/rruleExpander.js` (NEW) — `expandInRange`, `toDateStr`, `extractRrulePart`, `buildRrule`; wraps `rrule` npm package
+- [x] `server/routes/AgendaRouter.js` — day + month routes rewritten: excludes `isRecurringBase` from regular query, expands virtual instances via `expandInRange` and merges
+- [x] `server/routes/MeetingRouter.js` — POST passes `rrule` + sets `isRecurringBase`; new `PATCH /:id/recurring` endpoint (scope: this|following × action: edit|delete)
+- [x] `server/models/MeetingAccessDataService.js` — `editMeeting` handles `rrule`, `isRecurringBase`, `exceptedDates` fields
+- [x] `client/src/types/types.ts` — `Meeting` extended with `rrule`, `recurringId`, `isRecurringBase`, `isRecurringInstance`, `exceptedDates`; added `RecurrenceFreq` + `RecurringEditScope` types
+- [x] `client/src/components/modals/RecurrenceSelector.tsx` (NEW) — None/Daily/Weekly/Monthly picker; weekly day-of-week pills; monthly read-only label; builds/parses full DTSTART+RRULE strings
+- [x] `client/src/components/MeetingModal.tsx` — RecurrenceSelector integrated; scope picker (This occurrence | This & following | All occurrences) shown when editing recurring; date locked for scoped edits; ↻ Recurring badge in header
+- [x] `client/src/services/MeetingServices.js` — `editRecurringMeeting(baseId, { scope, action, date, data })` added
+- [x] `client/src/components/dashboard/Dashboard.tsx` — `handleMeetingSave` + `handleMeetingDelete` updated: route to `/recurring` endpoint for scoped edits, extract base ID from virtual instances via `recurringId`
+- [x] `client/src/components/dashboard/CalendarWidget.tsx` — ↻ badge on recurring meetings in both `renderAgendaItems` and `renderGroupedAgendaItems`
 
 ### Phase 3 — Performance Hardening
 - [ ] React.lazy modals, skeleton loaders, Zustand selector audit, bundle < 400kb

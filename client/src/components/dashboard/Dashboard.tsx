@@ -5,20 +5,22 @@ import TaskCard from './TaskCard';
 import TaskList from './TaskList';
 import TaskViewToggle from './TaskViewToggle';
 import CalendarWidget from './CalendarWidget';
+import CalendarSidebar from './CalendarSidebar';
 import NotesWidget from './NotesWidget';
 import TeamPanel from './TeamPanel';
 import MobileBottomNav from './MobileBottomNav';
 import ModalComponent from '../ModalComponent';
 import MeetingModal from '../MeetingModal';
 import NoteModal from '../NoteModal';
+import CalendarModal from '../modals/CalendarModal';
 import ChatPanel from '../chat/ChatPanel';
 import CommandPalette from './CommandPalette';
 import { SocketProvider } from '../../contexts/SocketContext';
 import { useTasks } from '../../hooks/useTasks';
 import { useViewPreference } from '../../hooks/useViewPreference';
 import { useAgenda } from '../../hooks/useAgenda';
-import { Task, Meeting, Note, AgendaView } from '../../types/types';
-import { addMeeting, editMeeting, deleteMeeting } from '../../services/MeetingServices';
+import { Task, Meeting, Note, AgendaView, RecurringEditScope } from '../../types/types';
+import { addMeeting, editMeeting, deleteMeeting, editRecurringMeeting } from '../../services/MeetingServices';
 import { NoteServices } from '../../services/NoteServices';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -70,6 +72,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [notesRefreshKey, setNotesRefreshKey] = useState(0);
   const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
   const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
   const [agendaView, setAgendaView] = useState<AgendaView>('day');
   const [chatOpen, setChatOpen] = useState(false);
@@ -182,16 +185,36 @@ const Dashboard: React.FC<DashboardProps> = () => {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   };
 
-  const handleMeetingSave = async (meetingData: {
-    title: string;
-    date: string;
-    description?: string;
-    startTime?: string;
-    endTime?: string;
-  }) => {
+  const handleMeetingSave = async (
+    meetingData: {
+      title: string;
+      date: string;
+      description?: string;
+      startTime?: string;
+      endTime?: string;
+      rrule?: string | null;
+    },
+    editScope?: RecurringEditScope
+  ) => {
     try {
       if (meetingToEdit) {
-        await editMeeting(meetingToEdit._id, meetingData);
+        const isRecurring = meetingToEdit.isRecurringInstance || meetingToEdit.isRecurringBase;
+        if (isRecurring && editScope && editScope !== 'all') {
+          const baseId = meetingToEdit.recurringId || meetingToEdit._id;
+          const occurrenceDate = meetingToEdit.date.split('T')[0];
+          await editRecurringMeeting(baseId, {
+            scope: editScope,
+            action: 'edit',
+            date: occurrenceDate,
+            data: meetingData,
+          });
+        } else {
+          // 'all' or non-recurring: patch base directly
+          const id = meetingToEdit.isRecurringInstance
+            ? (meetingToEdit.recurringId || meetingToEdit._id)
+            : meetingToEdit._id;
+          await editMeeting(id, meetingData);
+        }
         setMeetingToEdit(null);
       } else {
         await addMeeting(meetingData);
@@ -202,9 +225,24 @@ const Dashboard: React.FC<DashboardProps> = () => {
     }
   };
 
-  const handleMeetingDelete = async (meetingId: string) => {
+  const handleMeetingDelete = async (meetingId: string, editScope?: RecurringEditScope) => {
     try {
-      await deleteMeeting(meetingId);
+      const isRecurring = meetingToEdit?.isRecurringInstance || meetingToEdit?.isRecurringBase;
+      if (isRecurring && editScope && editScope !== 'all') {
+        const baseId = meetingToEdit?.recurringId || meetingId;
+        const occurrenceDate = (meetingToEdit?.date || '').split('T')[0];
+        await editRecurringMeeting(baseId, {
+          scope: editScope,
+          action: 'delete',
+          date: occurrenceDate,
+        });
+      } else {
+        // 'all': delete the base document
+        const idToDelete = meetingToEdit?.isRecurringInstance
+          ? (meetingToEdit.recurringId || meetingId)
+          : meetingId;
+        await deleteMeeting(idToDelete);
+      }
       setMeetingToEdit(null);
       refetchAgenda();
     } catch (error) {
@@ -415,24 +453,19 @@ const Dashboard: React.FC<DashboardProps> = () => {
               {!isMobile && (
                 <div className="lg:col-span-4 flex flex-col space-y-6 min-h-0 overflow-y-auto scrollbar-hide">
                   <TeamPanel onOpenChat={() => setChatOpen(true)} />
-                  <CalendarWidget
+                  <CalendarSidebar
                     selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
-                    className="flex-shrink-0"
-                    agenda={agenda}
-                    agendaLoading={agendaLoading}
-                    agendaEmpty={agendaEmpty}
+                    onOpenCalendarModal={() => setCalendarModalOpen(true)}
                     agendaView={agendaView}
                     onAgendaViewChange={setAgendaView}
-                    weekAgenda={weekAgenda}
-                    monthAgenda={monthAgenda}
                     onAddTask={handleQuickAddTask}
                     onAddNote={handleQuickAddNote}
                     onAddMeeting={handleQuickAddMeeting}
+                    agenda={agenda}
+                    agendaLoading={agendaLoading}
                     onMeetingClick={handleAgendaMeetingClick}
                     onTaskClick={handleAgendaTaskClick}
                     onNoteClick={handleAgendaNoteClick}
-                    onMeetingReschedule={handleMeetingReschedule}
                   />
                   <NotesWidget className="flex-1" refreshKey={notesRefreshKey} />
                 </div>
@@ -503,6 +536,28 @@ const Dashboard: React.FC<DashboardProps> = () => {
           prefillDate={selectedDate}
           noteToEdit={noteToEdit}
           onDelete={handleNoteDelete}
+        />
+
+        {/* Calendar Modal */}
+        <CalendarModal
+          isOpen={calendarModalOpen}
+          onClose={() => setCalendarModalOpen(false)}
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+          agenda={agenda}
+          agendaLoading={agendaLoading}
+          agendaEmpty={agendaEmpty}
+          agendaView={agendaView}
+          onAgendaViewChange={setAgendaView}
+          weekAgenda={weekAgenda}
+          monthAgenda={monthAgenda}
+          onAddTask={handleQuickAddTask}
+          onAddNote={handleQuickAddNote}
+          onAddMeeting={handleQuickAddMeeting}
+          onMeetingClick={handleAgendaMeetingClick}
+          onTaskClick={handleAgendaTaskClick}
+          onNoteClick={handleAgendaNoteClick}
+          onMeetingReschedule={handleMeetingReschedule}
         />
 
         {/* Mobile Sidebar Overlay */}
