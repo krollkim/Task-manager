@@ -25,7 +25,12 @@ lerna-debug.log*
 
 # Temporary files
 *.tmp
+
+# Claude IDE local settings (keep local only)
 .claude/
+.claude/settings.local.json
+
+# Testing utilities
 .playwright-mcp/
 
 # Environment variables
