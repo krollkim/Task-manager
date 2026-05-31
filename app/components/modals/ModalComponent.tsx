@@ -30,7 +30,7 @@ const ModalComponent: React.FC<ModalProps> = ({
 
   useEffect(() => {
     if (taskToEdit) {
-      setTask(taskToEdit.task || '');
+      setTask(taskToEdit.title || '');
       setDescription(taskToEdit.description || '');
       setStatus(taskToEdit.status || 'todo');
       setPriority(taskToEdit.priority || 'medium');
@@ -51,12 +51,11 @@ const ModalComponent: React.FC<ModalProps> = ({
     if (!task.trim()) return;
 
     const updatedTask: Partial<Task> = {
-      task: task.trim(),
+      title: task.trim(),
       description: description.trim(),
       status,
       priority,
-      dueDate: dueDate || undefined,
-      estimateMinutes: estimateMinutes ? parseInt(estimateMinutes) : undefined
+      dueDate: dueDate || undefined
     };
 
     onSave(updatedTask);
@@ -125,7 +124,7 @@ const ModalComponent: React.FC<ModalProps> = ({
           // Preview Mode
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-medium text-white mb-2">{taskToEdit?.task}</h3>
+              <h3 className="text-lg font-medium text-white mb-2">{taskToEdit?.title}</h3>
               <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full mb-3 ${
                 taskToEdit?.status === 'done' ? 'bg-green-600/20 text-green-400' :
                 taskToEdit?.status === 'in-progress' ? 'bg-yellow-600/20 text-yellow-400' :

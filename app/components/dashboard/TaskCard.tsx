@@ -200,7 +200,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             group-hover:translate-x-1
             ${task.status === 'done' ? 'line-through text-white/35' : ''}
           `}>
-            {task.task}
+            {task.title}
           </h3>
         </div>
 
@@ -291,7 +291,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </button>
           <span className="flex items-center space-x-1">
             <span className="text-sm">🕒</span>
-            <span>{formatDate(task.createdAt)}</span>
+            <span>{formatDate(typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString())}</span>
           </span>
         </div>
       </div>

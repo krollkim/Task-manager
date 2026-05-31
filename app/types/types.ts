@@ -20,6 +20,7 @@ export interface Task {
   status: 'todo' | 'in-progress' | 'done';
   priority: 'urgent' | 'high' | 'medium' | 'low' | 'none';
   dueDate?: string;
+  estimateMinutes?: number;
   userId: string;
   teamId?: string;
   createdAt: Date;
