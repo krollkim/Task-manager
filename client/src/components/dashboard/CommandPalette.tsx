@@ -6,7 +6,6 @@ import {
   Task,
   Note,
   Meeting,
-  ChatMessage,
   SearchResultTask,
   SearchResultNote,
   SearchResultMeeting,

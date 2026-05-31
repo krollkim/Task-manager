@@ -321,7 +321,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 onItemClick={handleSectionChange}
                 onClose={handleSidebarClose}
                 isMobile={isMobile}
-                currentUser={currentUser}
+                currentUser={currentUser || undefined}
                 onLogout={handleLogout}
               />
             </div>

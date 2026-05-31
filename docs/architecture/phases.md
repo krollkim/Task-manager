@@ -1,8 +1,9 @@
 # Architecture Plan: TaskManager V2
 
-**Current Branch:** `feature/architecture-v2`  
-**Status:** Phase 2 in progress (B8 recurring meetings)  
-**Timeline:** Started 2026-04-14, estimated completion Phase 2: 2026-05-31  
+**Current Branch:** `feature/nextjs-migration` (planned)  
+**Previous Branch:** `feature/architecture-v2` (✅ COMPLETED 2026-05-30)  
+**Status:** Phase 2 complete, starting Phase 3 — Next.js migration  
+**Timeline:** Phase 0–2 completed by 2026-05-30; Phase 3 planned for 2 weeks (2026-06-14)  
 
 ---
 
@@ -16,8 +17,8 @@ Upgrade from basic CRUD app to professional collaboration platform with:
 - Zustand state management
 - Performance-first architecture (Phase 3)
 
-**Total Phases:** 3  
-**Current Status:** Phase 2/3 (87% complete)
+**Total Phases:** 3 + Migration  
+**Current Status:** Phase 2/3 complete ✅; Phase 3 not started
 
 ---
 
@@ -137,10 +138,11 @@ Upgrade from basic CRUD app to professional collaboration platform with:
 
 ---
 
-## Phase 2: Advanced Features & Polish 🟡 IN PROGRESS (87% done)
+## Phase 2: Advanced Features & Polish ✅ COMMITTED
 
 **Goal:** Command Palette, global search, recurring meetings, invite system  
-**Status:** B9 complete, B8 ready to test
+**Status:** All deliverables complete and committed (2026-05-30)  
+**Next:** Phase 3 — Next.js migration (feature/nextjs-migration branch)
 
 ### B9: Command Palette + Global Search ✅ COMMITTED
 
@@ -216,9 +218,10 @@ Upgrade from basic CRUD app to professional collaboration platform with:
 
 **Status:** Complete, tested with socket flow ✅
 
-### B8: Recurring Meetings 🟡 STAGED (ready to test)
+### B8: Recurring Meetings ✅ COMMITTED
 
-**Status:** Code complete, uncommitted, ready for E2E testing
+**Committed:** 2026-05-30 (commit `588865e`)  
+**Status:** Complete with calendar modal UI refactor
 
 #### Deliverables
 
@@ -283,7 +286,24 @@ Upgrade from basic CRUD app to professional collaboration platform with:
   - ↻ Recurring badge on all recurring instances (base + virtual)
   - Badge in both `renderAgendaItems` and `renderGroupedAgendaItems`
 
-**Status:** Ready for E2E testing ✅
+**UI Refactor (final polish):**
+- [x] `client/src/components/modals/CalendarModal.tsx` (NEW)
+  - Full 80vw × 92vh modal housing complete CalendarWidget
+  - Glass panel design, header with close button
+  - All calendar features preserved (day/week/month views, quick-add, reschedule)
+  - Proper grid cell borders (border-white/20 base, hover/selected states)
+
+- [x] `client/src/components/dashboard/CalendarSidebar.tsx` (NEW)
+  - Minimal sidebar with: Open Calendar button, date display, quick-add, view toggle
+  - Renders agenda items for selected date
+  - Opens CalendarModal on button click
+
+- [x] `client/src/components/dashboard/Dashboard.tsx`
+  - Replaced full CalendarWidget with CalendarSidebar in right sidebar
+  - CalendarModal wired to open on sidebar button click
+  - All props properly threaded for modals and reschedule
+
+**Status:** Complete and committed ✅
 
 #### Test Plan
 See: [docs/testing/e2e-recurring-meetings.md](../testing/e2e-recurring-meetings.md)

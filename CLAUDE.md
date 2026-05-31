@@ -167,7 +167,7 @@ Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP an
 - [x] `JoinPage.tsx` (NEW) — `/join/:token` public route: validates invite, auto-accepts if logged in, shows register/login flow if not
 - [x] `AppRouter.tsx` — `/join/:token` route wired to JoinPage
 
-### Phase 2 — B8 Recurring Meetings ✅ (2026-04-21, staged)
+### Phase 2 — B8 Recurring Meetings ✅ (commit: 588865e, 2026-05-30, COMMITTED)
 - [x] `server/models/mongoDB/Meeting.js` — `exceptedDates: [String]` field added
 - [x] `server/utils/rruleExpander.js` (NEW) — `expandInRange`, `toDateStr`, `extractRrulePart`, `buildRrule`; wraps `rrule` npm package
 - [x] `server/routes/AgendaRouter.js` — day + month routes rewritten: excludes `isRecurringBase` from regular query, expands virtual instances via `expandInRange` and merges
@@ -179,9 +179,95 @@ Architectural upgrade — Zustand state, unified schema, real-time chat, GSAP an
 - [x] `client/src/services/MeetingServices.js` — `editRecurringMeeting(baseId, { scope, action, date, data })` added
 - [x] `client/src/components/dashboard/Dashboard.tsx` — `handleMeetingSave` + `handleMeetingDelete` updated: route to `/recurring` endpoint for scoped edits, extract base ID from virtual instances via `recurringId`
 - [x] `client/src/components/dashboard/CalendarWidget.tsx` — ↻ badge on recurring meetings in both `renderAgendaItems` and `renderGroupedAgendaItems`
+- [x] Calendar modal UI refactored: `CalendarSidebar.tsx` (minimal sidebar) + `CalendarModal.tsx` (80vw full calendar); proper cell borders; professional UX
 
 ### Phase 3 — Performance Hardening
 - [ ] React.lazy modals, skeleton loaders, Zustand selector audit, bundle < 400kb
+
+---
+
+## Current: Next.js Migration (feature/nextjs-migration) — IN PROGRESS
+
+### Phase 2a — File Structure Migration ✅ (2026-05-31, COMPLETE)
+
+**Status:** All 54+ files created, build passing, dev server running
+
+- [x] **2a:** Create App Router Structure — Pages, layouts, 26 API routes, stub components
+- [x] Configuration: next.config.js, tsconfig.json, tailwind.config.js, .env files
+- [x] Library files: auth.ts, db.ts, middleware.ts, utils.ts
+- [x] Hooks: useAuth, useAgenda, useSearch, useSocket
+- [x] State: Zustand store with 4 slices
+- [x] Testing: Manual verification of routes, styling, responsive layout
+- [x] Documentation: Phase 2a completion document created
+
+**Next: Phase 2b — Migrate Components**
+
+## Next: Component Migration (Phase 2b)
+
+### Goal
+Migrate to **Next.js 14 + TypeScript** with improved architecture, file-based routing, server components, and better developer experience. See [`docs/migration/nextjs-migration-plan.md`](./docs/migration/nextjs-migration-plan.md) for detailed 14-day plan.
+
+### Phase 1 — Preparation ✅ (2026-05-31, COMPLETE)
+
+**1a: Create Staging Branch** ✅
+- Created branch `feature/nextjs-migration` from `feature/architecture-v2`
+
+**1b: Initialize Next.js Project** ✅
+- Installed Next.js 14.2.35 + TypeScript + Tailwind + ESLint
+- Created `next.config.js` with bundle optimization for zustand, gsap, socket.io-client
+- Set up `tsconfig.json` with path aliases (@/components, @/hooks, @/types, @/store, @/utils, @/services)
+- Created `app/` directory with `layout.tsx`, `page.tsx`, `globals.css`
+
+**1c: Set Up Environment Variables** ✅
+- Created `.env.local` for local development (NEXT_PUBLIC_API_URL, MONGODB_URI, JWT_SECRET, OAuth creds)
+- Created `.env.production` for Vercel deployment
+
+**1d: Install Dependencies** ✅
+- Installed: zustand, socket.io-client, gsap, rrule, uuid, axios
+- Baseline build verified: ✅ Working (87.4 kB First Load JS, 0 hydration errors)
+
+### Phase 2 — File Structure Migration (Days 3–5) [NEXT]
+
+**2a: Create App Router Structure** (following plan: `app/` → pages, layouts, api routes)
+- [ ] Create `app/(auth)/` layout (no sidebar)
+- [ ] Create `app/(dashboard)/` layout (with sidebar)  
+- [ ] Create `app/join/[token]/` for invite acceptance
+- [ ] Create `app/api/` folder structure (auth, tasks, notes, meetings, agenda, search, teams)
+
+**2b: Port React Components**
+- [ ] Move `client/src/components/` → `app/components/`
+- [ ] Update import paths to use `@/` aliases
+- [ ] Port Dashboard, Auth pages, NotFound page
+- [ ] Port hooks: `useAuth`, `useAgenda`, `useSearch`, `useSocket`
+
+**2c: Create API Layer**
+- [ ] Create `lib/api.ts` with axios client
+- [ ] Define API methods: tasksApi, meetingsApi, notesApi, agendaApi, searchApi, teamsApi
+- [ ] Wire components to use new API layer
+
+### Phase 3 — Backend → API Routes (Days 5–8)
+
+**3a: Convert Express Routes to Next.js API Routes**
+- [ ] `/api/auth/*` — login, register, logout
+- [ ] `/api/tasks/*` — GET, POST, PATCH, DELETE
+- [ ] `/api/meetings/*` — GET, POST, PATCH /recurring, DELETE
+- [ ] `/api/notes/*` — GET, POST, PATCH, DELETE
+- [ ] `/api/agenda/*` — day, week, month views
+- [ ] `/api/search/*` — global search endpoint
+- [ ] `/api/teams/*` — invite, accept invite
+
+**3b: Migrate Socket.io Integration**
+- [ ] Set up Socket.io for Next.js
+- [ ] Port chat handlers, presence tracking
+- [ ] Port message model and routing
+
+### Phase 4 — Evaluation & Deployment (Days 9–14)
+
+- [ ] Performance audit (bundle size, LCP, FCP)
+- [ ] Database: keep MongoDB or evaluate Supabase
+- [ ] Security review & compliance
+- [ ] Deploy to Vercel staging, then production
+- [ ] Decommission old Vite build
 
 ---
 

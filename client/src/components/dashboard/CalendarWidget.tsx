@@ -393,7 +393,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
 
       {/* Day Headers */}
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {dayNames.map((day, index) => (
+        {dayNames.map((_, index) => (
           <div key={`day-${index}`} className="h-8 flex items-center justify-center">
             <span className="text-white/60 text-xs font-medium">{dayAbbreviations[index]}</span>
           </div>
