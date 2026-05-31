@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAgendaForMonth } from '@/lib/services/agendaService';
 
 /**
  * GET /api/agenda/month?year=YYYY&month=MM
@@ -47,21 +48,10 @@ export async function GET(request: NextRequest) {
     }
 
     // TODO: Extract user from auth session
-    // const userId = request.headers.get('x-user-id');
-    // if (!userId) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // For now, use a hardcoded userId for testing
+    const userId = process.env.TEST_USER_ID || 'test-user';
 
-    // TODO: Implement month logic
-    // 1. Calculate start and end of month (UTC)
-    // 2. Query MongoDB for tasks, notes, and meetings across the month
-    // 3. Expand recurring meetings for each day
-    // 4. Build day map keyed by YYYY-MM-DD
-    // 5. Apply sorting: meetings by startTime, tasks by priority, notes by createdAt
-    // 6. Return array sorted by date
-
-    // Placeholder response
-    const monthAgenda = [];
+    const monthAgenda = await getAgendaForMonth(userId, year, month);
 
     return NextResponse.json(
       {

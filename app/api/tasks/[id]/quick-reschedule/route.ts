@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { quickReschedule } from '@/lib/services/taskService';
+import { extractUserId } from '@/lib/auth';
 
 /**
  * PATCH /api/tasks/[id]/quick-reschedule
@@ -33,16 +35,20 @@ export async function PATCH(
       );
     }
 
-    // TODO: Check auth (extract user ID from JWT/session)
-    // TODO: Call editTask(taskId, { dueDate: body.dueDate }, userId)
-    // TODO: Verify user owns this task
-    // TODO: Return updated task with new dueDate
+    // Extract user ID from request headers
+    const userId = extractUserId(request.headers);
 
-    const rescheduledTask = {
-      _id: taskId,
-      dueDate: body.dueDate,
-      updatedAt: new Date().toISOString(),
-    };
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: No valid authentication token provided',
+        },
+        { status: 401 }
+      );
+    }
+
+    const rescheduledTask = await quickReschedule(taskId, userId, body.dueDate);
 
     return NextResponse.json(
       {
@@ -53,10 +59,42 @@ export async function PATCH(
       { status: 200 }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to reschedule task';
+
+    if (errorMessage.includes('Unauthorized')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 403 }
+      );
+    }
+
+    if (errorMessage.includes('not found')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 404 }
+      );
+    }
+
+    if (errorMessage.includes('required')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to reschedule task',
+        error: errorMessage,
       },
       { status: 500 }
     );

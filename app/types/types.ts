@@ -69,6 +69,9 @@ export interface Message {
   createdAt: Date;
 }
 
+// Chat Message type alias (same as Message)
+export type ChatMessage = Message;
+
 // Agenda types
 export interface AgendaData {
   meetings: Meeting[];

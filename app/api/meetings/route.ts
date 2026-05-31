@@ -1,21 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import dbConnect from '@/lib/db'
+import { getAllMeetings, createMeeting } from '@/lib/services/meetingService'
+import { extractUserId } from '@/lib/auth'
 
 /**
  * GET /api/meetings
- * Fetch all meetings for the authenticated user
+ * Fetch all meetings for the authenticated user, optionally filtered by teamId
+ * Query params: ?teamId=<optional>
  */
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Extract user from auth session/middleware
-    // const userId = request.headers.get('x-user-id');
-    // if (!userId) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    await dbConnect()
 
-    // TODO: Query MongoDB for meetings
-    // const meetings = await Meeting.find({ userId });
+    const userId = extractUserId(request.headers)
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
 
-    const meetings = [];
+    // Extract optional teamId from query params
+    const { searchParams } = new URL(request.url)
+    const teamId = searchParams.get('teamId')
+
+    const meetings = await getAllMeetings(userId, teamId)
 
     return NextResponse.json(
       {
@@ -23,16 +32,17 @@ export async function GET(request: NextRequest) {
         data: meetings,
       },
       { status: 200 }
-    );
+    )
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[GET /api/meetings]', message)
     return NextResponse.json(
       {
         success: false,
         error: message,
       },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -43,49 +53,34 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    await dbConnect()
+
+    const userId = extractUserId(request.headers)
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
 
     // Validate required fields
     if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
       return NextResponse.json(
-        { error: 'Meeting title is required and must be a non-empty string.' },
+        { success: false, error: 'Meeting title is required and must be a non-empty string.' },
         { status: 400 }
-      );
+      )
     }
 
     if (!body.date) {
       return NextResponse.json(
-        { error: 'Meeting date is required.' },
+        { success: false, error: 'Meeting date is required.' },
         { status: 400 }
-      );
+      )
     }
 
-    // TODO: Extract user from auth session
-    // const userId = request.headers.get('x-user-id');
-    // if (!userId) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
-    // TODO: Build meeting data and save to MongoDB
-    // const meetingData = {
-    //   title: body.title.trim(),
-    //   description: body.description || '',
-    //   date: new Date(body.date),
-    //   userId,
-    //   startTime: body.startTime,
-    //   endTime: body.endTime,
-    //   rrule: body.rrule,
-    //   isRecurringBase: !!body.rrule,
-    //   teamId: body.teamId,
-    // };
-    // const newMeeting = await Meeting.create(meetingData);
-
-    const newMeeting = {
-      _id: 'placeholder-id',
-      title: body.title,
-      date: body.date,
-      createdAt: new Date(),
-    };
+    const newMeeting = await createMeeting(userId, body)
 
     return NextResponse.json(
       {
@@ -93,15 +88,16 @@ export async function POST(request: NextRequest) {
         data: newMeeting,
       },
       { status: 201 }
-    );
+    )
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[POST /api/meetings]', message)
     return NextResponse.json(
       {
         success: false,
         error: message,
       },
       { status: 500 }
-    );
+    )
   }
 }

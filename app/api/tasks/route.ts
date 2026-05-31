@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAllTasks, createTask } from '@/lib/services/taskService';
+import { extractUserId } from '@/lib/auth';
 
 /**
  * GET /api/tasks
@@ -6,13 +8,20 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Check auth (extract user ID from JWT/session)
-    // TODO: Fetch tasks from MongoDB using getTasks(userId)
-    // TODO: Return tasks array
+    // Extract user ID from request headers
+    const userId = extractUserId(request.headers);
 
-    const tasks = [
-      // Placeholder
-    ];
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: No valid authentication token provided',
+        },
+        { status: 401 }
+      );
+    }
+
+    const tasks = await getAllTasks(userId);
 
     return NextResponse.json(
       {
@@ -52,26 +61,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Check auth (extract user ID from JWT/session)
-    // TODO: Call createTask(taskData) with validated data
-    // TODO: Return created task
+    // Extract user ID from request headers
+    const userId = extractUserId(request.headers);
 
-    const taskData = {
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: No valid authentication token provided',
+        },
+        { status: 401 }
+      );
+    }
+
+    const newTask = await createTask(userId, {
       task: body.task.trim(),
       description: body.description || '',
       status: body.status || 'todo',
       priority: body.priority || 'medium',
-      // userId will be set from auth context
       ...(body.dueDate && { dueDate: body.dueDate }),
       ...(body.estimateMinutes !== undefined && { estimateMinutes: body.estimateMinutes }),
-    };
-
-    const newTask = {
-      _id: 'stub-task-id',
-      ...taskData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      ...(body.linkedMeetingId && { linkedMeetingId: body.linkedMeetingId }),
+      ...(body.linkedNoteIds && { linkedNoteIds: body.linkedNoteIds }),
+      ...(body.tags && { tags: body.tags }),
+      ...(body.teamId && { teamId: body.teamId }),
+    });
 
     return NextResponse.json(
       {

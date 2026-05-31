@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { searchAll } from '@/lib/services/searchService';
+import { extractUserId } from '@/lib/auth';
 
 /**
  * GET /api/search
@@ -8,6 +10,17 @@ import { NextRequest, NextResponse } from 'next/server';
  * - q: search query (min 2 chars)
  * - types: comma-separated list of types to search (task,note,meeting,message)
  * - limit: max results per type (default 10)
+ *
+ * Returns:
+ * {
+ *   success: boolean,
+ *   data: {
+ *     tasks?: SearchResult[],
+ *     notes?: SearchResult[],
+ *     meetings?: SearchResult[],
+ *     messages?: SearchResult[]
+ *   }
+ * }
  */
 export async function GET(request: NextRequest) {
   try {
@@ -27,25 +40,31 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const limit = limitParam ? parseInt(limitParam, 10) : 10;
+    // TODO: Replace with actual auth session
+    // For now, using placeholder userId; replace with extractUserId(request.headers)
+    const userId = 'placeholder-user-id';
+
+    const limit = limitParam ? Math.min(parseInt(limitParam, 10), 50) : 10;
     const types = typesParam
-      ? typesParam.split(',').map((t) => t.trim())
+      ? typesParam.split(',').map((t) => t.trim().toLowerCase())
       : ['task', 'note', 'meeting', 'message'];
 
-    // TODO: Implement MongoDB text search
-    // const results = {
-    //   tasks: await Task.find({ $text: { $search: query } }).limit(limit),
-    //   notes: await Note.find({ $text: { $search: query } }).limit(limit),
-    //   meetings: await Meeting.find({ $text: { $search: query } }).limit(limit),
-    //   messages: await Message.find({ $text: { $search: query } }).limit(limit),
-    // };
+    // Validate types
+    const validTypes = ['task', 'note', 'meeting', 'message'];
+    const filteredTypes = types.filter((t) => validTypes.includes(t));
 
-    const results = {
-      tasks: types.includes('task') ? [] : undefined,
-      notes: types.includes('note') ? [] : undefined,
-      meetings: types.includes('meeting') ? [] : undefined,
-      messages: types.includes('message') ? [] : undefined,
-    };
+    if (filteredTypes.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid search types',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Perform search
+    const results = await searchAll(userId, query, filteredTypes, limit);
 
     return NextResponse.json(
       {

@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getTeamMembers } from '@/lib/services/teamService';
+
+// TODO: Use extractUserId when auth is implemented
+// import { extractUserId } from '@/lib/auth';
 
 /**
  * GET /api/teams/members
- * Fetch team members for a specific team
+ * Fetch team members for a workspace
  *
  * Query params:
- * - teamId: the team to fetch members for
+ * - workspaceId: workspace ID (default: 'default')
+ *
+ * Returns:
+ * {
+ *   success: boolean,
+ *   data: TeamMember[]
+ * }
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const teamId = searchParams.get('teamId');
-
-    if (!teamId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Team ID is required',
-        },
-        { status: 400 }
-      );
-    }
+    const workspaceId = searchParams.get('workspaceId') || 'default';
 
     // TODO: Extract user from auth session
     // const userId = extractUserId(request.headers);
@@ -28,21 +28,23 @@ export async function GET(request: NextRequest) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-    // TODO: Verify user belongs to team
-    // const membership = await TeamMember.findOne({ userId, teamId });
+    // TODO: Verify user belongs to workspace
+    // const membership = await TeamMember.findOne({ userId, workspaceId });
     // if (!membership) {
     //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     // }
 
-    // TODO: Fetch team members
-    // const members = await TeamMember.find({ teamId }).populate('userId');
-
-    const members = [];
+    // Fetch team members
+    const members = await getTeamMembers(workspaceId);
 
     return NextResponse.json(
       {
         success: true,
         data: members,
+        meta: {
+          total: members.length,
+          workspaceId,
+        },
       },
       { status: 200 }
     );

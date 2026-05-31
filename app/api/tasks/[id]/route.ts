@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getTaskById, updateTask, deleteTask } from '@/lib/services/taskService';
+import { extractUserId } from '@/lib/auth';
 
 /**
  * GET /api/tasks/[id]
@@ -21,20 +23,30 @@ export async function GET(
       );
     }
 
-    // TODO: Check auth (extract user ID from JWT/session)
-    // TODO: Fetch task from MongoDB using getTask(taskId, userId)
-    // TODO: Verify user owns this task
-    // TODO: Return task
+    // Extract user ID from request headers
+    const userId = extractUserId(request.headers);
 
-    const task = {
-      _id: taskId,
-      task: 'Stub Task',
-      description: 'This is a stub task',
-      status: 'todo',
-      priority: 'medium',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: No valid authentication token provided',
+        },
+        { status: 401 }
+      );
+    }
+
+    const task = await getTaskById(taskId, userId);
+
+    if (!task) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Task not found',
+        },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -44,10 +56,22 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch task';
+
+    if (errorMessage.includes('Unauthorized')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch task',
+        error: errorMessage,
       },
       { status: 500 }
     );
@@ -77,19 +101,20 @@ export async function PATCH(
       );
     }
 
-    // TODO: Check auth (extract user ID from JWT/session)
-    // TODO: Call editTask(taskId, updatedData, userId)
-    // TODO: Verify user owns this task
-    // TODO: Return updated task
+    // Extract user ID from request headers
+    const userId = extractUserId(request.headers);
 
-    const editedTask = {
-      _id: taskId,
-      task: updatedData.task || 'Updated Task',
-      description: updatedData.description || '',
-      status: updatedData.status || 'todo',
-      priority: updatedData.priority || 'medium',
-      updatedAt: new Date().toISOString(),
-    };
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: No valid authentication token provided',
+        },
+        { status: 401 }
+      );
+    }
+
+    const editedTask = await updateTask(taskId, userId, updatedData);
 
     return NextResponse.json(
       {
@@ -99,10 +124,42 @@ export async function PATCH(
       { status: 200 }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update task';
+
+    if (errorMessage.includes('Unauthorized')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 403 }
+      );
+    }
+
+    if (errorMessage.includes('not found')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 404 }
+      );
+    }
+
+    if (errorMessage.includes('Invalid')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update task',
+        error: errorMessage,
       },
       { status: 500 }
     );
@@ -130,10 +187,20 @@ export async function DELETE(
       );
     }
 
-    // TODO: Check auth (extract user ID from JWT/session)
-    // TODO: Call deleteTask(taskId, userId)
-    // TODO: Verify user owns this task
-    // TODO: Return success response
+    // Extract user ID from request headers
+    const userId = extractUserId(request.headers);
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: No valid authentication token provided',
+        },
+        { status: 401 }
+      );
+    }
+
+    await deleteTask(taskId, userId);
 
     return NextResponse.json(
       {
@@ -146,10 +213,32 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete task';
+
+    if (errorMessage.includes('Unauthorized')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 403 }
+      );
+    }
+
+    if (errorMessage.includes('not found')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage,
+        },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete task',
+        error: errorMessage,
       },
       { status: 500 }
     );

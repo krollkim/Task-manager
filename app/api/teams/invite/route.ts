@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createInvite } from '@/lib/services/teamService';
+
+// TODO: Use extractUserId when auth is implemented
+// import { extractUserId } from '@/lib/auth';
 
 /**
  * POST /api/teams/invite
- * Create an invite link for a team
+ * Create an invite link for a workspace
  *
- * Body: { email, teamId }
+ * Body: { email, workspaceId? }
+ * Returns: { success, data: { inviteUrl, email, token } }
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, teamId } = body;
+    const { email, workspaceId } = body;
 
-    // Validate inputs
+    // Validate email
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
         {
@@ -22,11 +27,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!teamId || typeof teamId !== 'string') {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Team ID is required',
+          error: 'Invalid email format',
         },
         { status: 400 }
       );
@@ -38,22 +45,15 @@ export async function POST(request: NextRequest) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-    // TODO: Verify user owns team
-    // const team = await Team.findById(teamId);
-    // if (!team || team.ownerId !== userId) {
-    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    // }
+    // Placeholder userId; replace with actual auth
+    const userId = 'placeholder-user-id';
 
-    // TODO: Create invite record
-    // const token = generateToken();
-    // const invite = await Invite.create({
-    //   token,
-    //   email,
-    //   teamId,
-    //   expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    // });
-
-    const inviteUrl = `${process.env.NEXT_PUBLIC_API_URL}/join/placeholder-token`;
+    // Create invite
+    const { token, inviteUrl } = await createInvite(
+      userId,
+      email,
+      workspaceId || 'default'
+    );
 
     return NextResponse.json(
       {
@@ -61,7 +61,8 @@ export async function POST(request: NextRequest) {
         data: {
           inviteUrl,
           email,
-          teamId,
+          token,
+          expiresIn: '7 days',
         },
       },
       { status: 201 }

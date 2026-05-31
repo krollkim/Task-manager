@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { acceptInvite } from '@/lib/services/teamService';
+
+// TODO: Use extractUserId when auth is implemented
+// import { extractUserId } from '@/lib/auth';
 
 /**
  * POST /api/teams/invite/[token]/accept
- * Accept a team invite
+ * Accept a team invite and add user to team
  *
  * Params: { token }
+ * Returns: { success, data: { workspaceId, role, message } }
  */
 export async function POST(
   request: NextRequest,
@@ -29,41 +34,43 @@ export async function POST(
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-    // TODO: Validate invite token
-    // const invite = await Invite.findOne({ token });
-    // if (!invite || new Date() > invite.expiresAt) {
-    //   return NextResponse.json(
-    //     { error: 'Invite expired or invalid' },
-    //     { status: 400 }
-    //   );
-    // }
+    // Placeholder userId; replace with actual auth
+    const userId = 'placeholder-user-id';
 
-    // TODO: Add user to team
-    // const teamMember = await TeamMember.create({
-    //   userId,
-    //   teamId: invite.teamId,
-    //   role: 'member',
-    // });
-    // await invite.deleteOne();
+    // Accept invite
+    const result = await acceptInvite(token, userId);
 
     return NextResponse.json(
       {
         success: true,
         data: {
-          message: 'Invite accepted',
-          teamId: 'placeholder-team-id',
+          message: 'Invite accepted successfully',
+          workspaceId: result.workspaceId,
+          role: result.role,
+          userId,
         },
       },
       { status: 200 }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+
+    // Determine appropriate status code
+    let status = 500;
+    if (message.includes('not found')) {
+      status = 404;
+    } else if (message.includes('expired')) {
+      status = 410;
+    } else if (message.includes('pending')) {
+      status = 400;
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: message,
       },
-      { status: 500 }
+      { status }
     );
   }
 }

@@ -1,63 +1,122 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import dbConnect from '@/lib/db'
+import { createUser, generateToken } from '@/lib/services/authService'
 
-export async function POST(request: NextRequest) {
+interface RegisterRequest {
+  name: string
+  email: string
+  password: string
+}
+
+interface RegisterResponse {
+  success: boolean
+  data?: {
+    user: {
+      id: string
+      email: string
+      name: string
+    }
+    token: string
+  }
+  error?: string
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<RegisterResponse>> {
   try {
-    const body = await request.json();
+    // Connect to database
+    await dbConnect()
+
+    // Parse request body
+    const body: RegisterRequest = await request.json()
 
     // Validate required fields
     if (!body.email || !body.password || !body.name) {
       return NextResponse.json(
-        { error: 'Email, password, and name are required' },
+        { success: false, error: 'Email, password, and name are required' },
         { status: 400 }
-      );
+      )
     }
+
+    // Trim fields
+    const email = body.email.trim().toLowerCase()
+    const name = body.name.trim()
+    const password = body.password
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.email)) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { success: false, error: 'Invalid email format' },
         { status: 400 }
-      );
+      )
     }
 
-    // Validate password strength (minimum 8 characters)
-    if (body.password.length < 8) {
+    // Validate name (at least 2 characters)
+    if (name.length < 2) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
+        { success: false, error: 'Name must be at least 2 characters' },
         { status: 400 }
-      );
+      )
     }
 
-    // TODO: Implement actual registration logic
-    // 1. Check if user already exists
-    // 2. Hash password with bcrypt
-    // 3. Create user in MongoDB
-    // 4. Generate JWT token
-    // 5. Set secure HTTP-only cookie
-    // 6. Return user data and token
+    // Validate password strength (minimum 6 characters)
+    if (password.length < 6) {
+      return NextResponse.json(
+        { success: false, error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      )
+    }
 
-    return NextResponse.json(
+    // Create user
+    const user = await createUser({
+      name,
+      email,
+      password,
+    })
+
+    // Generate token
+    const token = generateToken(user._id)
+
+    // Create response
+    const response = NextResponse.json(
       {
         success: true,
         data: {
           user: {
-            id: 'stub-user-id',
-            email: body.email,
-            name: body.name,
+            id: user._id,
+            email: user.email,
+            name: user.name,
           },
-          token: 'stub-jwt-token',
+          token,
         },
-        message: 'Registration successful (stub)',
       },
       { status: 201 }
-    );
+    )
+
+    // Set secure HTTP-only cookie
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+    })
+
+    return response
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Registration failed'
+
+    // Handle duplicate email error (MongoDB unique constraint)
+    if (message.includes('duplicate') || message.includes('already exists')) {
+      return NextResponse.json(
+        { success: false, error: 'User with this email already exists' },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Registration failed',
-      },
+      { success: false, error: message },
       { status: 500 }
-    );
+    )
   }
 }

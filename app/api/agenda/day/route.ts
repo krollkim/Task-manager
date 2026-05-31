@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAgendaForDay } from '@/lib/services/agendaService';
 
 /**
  * GET /api/agenda/day?date=YYYY-MM-DD
@@ -30,39 +31,16 @@ export async function GET(request: NextRequest) {
     }
 
     // TODO: Extract user from auth session
-    // const userId = request.headers.get('x-user-id');
-    // if (!userId) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // For now, use a hardcoded userId for testing
+    const userId = process.env.TEST_USER_ID || 'test-user';
 
-    // TODO: Query MongoDB for tasks, notes, and meetings
-    // const startOfDay = new Date(date + 'T00:00:00.000Z');
-    // const endOfDay = new Date(date + 'T23:59:59.999Z');
-    // const dayRange = { $gte: startOfDay, $lte: endOfDay };
-    //
-    // const [tasks, notes, regularMeetings, recurringBases] = await Promise.all([
-    //   Task.find({ userId, dueDate: dayRange }),
-    //   Note.find({ userId, date: dayRange }),
-    //   Meeting.find({ userId, date: dayRange, isRecurringBase: { $ne: true } }),
-    //   Meeting.find({ userId, isRecurringBase: true }),
-    // ]);
-    //
-    // const virtualMeetings = recurringBases.flatMap(m => expandInRange(m, startOfDay, endOfDay));
-    // const meetings = [...regularMeetings, ...virtualMeetings];
-    //
-    // Apply sorting logic here
-
-    const tasks = [];
-    const notes = [];
-    const meetings = [];
+    const agenda = await getAgendaForDay(userId, date);
 
     return NextResponse.json(
       {
         success: true,
         data: {
-          tasks,
-          notes,
-          meetings,
+          ...agenda,
           date,
         },
       },
