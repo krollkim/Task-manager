@@ -291,7 +291,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </button>
           <span className="flex items-center space-x-1">
             <span className="text-sm">🕒</span>
-            <span>{formatDate(typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString())}</span>
+            <span>{formatDate(task.createdAt instanceof Date ? task.createdAt.toISOString() : String(task.createdAt))}</span>
           </span>
         </div>
       </div>
