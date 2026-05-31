@@ -61,3 +61,12 @@ build/
 
 # Cache
 .eslintcache
+
+# Security: Prevent credential exposure
+.env.local
+.env.production
+.env.*.local
+docs/*AUDIT.md
+docs/*CREDENTIAL*.md
+docs/*SECRET*.md
+server/config/default.json
