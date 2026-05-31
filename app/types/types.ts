@@ -53,6 +53,9 @@ export interface Meeting {
   isRecurringBase?: boolean;
   isRecurringInstance?: boolean;
   exceptedDates?: string[];
+  linkedTaskIds?: string[];
+  linkedNoteIds?: string[];
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

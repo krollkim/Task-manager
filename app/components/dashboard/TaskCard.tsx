@@ -255,7 +255,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               : 'bg-blue-500/20 text-blue-300 border-blue-500/30'}
             border font-medium text-xs capitalize px-2 py-1 rounded-full transition-all duration-300
           `}>
-            {task.status.replace('-', ' ')}
+            {(task.status || 'todo').replace('-', ' ')}
           </span>
           <button
             onClick={handlePriorityChipClick}

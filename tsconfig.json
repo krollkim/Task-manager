@@ -30,14 +30,23 @@
       "@/components/*": [
         "./app/components/*"
       ],
+      "@/contexts/*": [
+        "./app/contexts/*"
+      ],
       "@/hooks/*": [
         "./app/hooks/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
       ],
       "@/services/*": [
         "./app/services/*"
       ],
       "@/store/*": [
         "./app/store/*"
+      ],
+      "@/types": [
+        "./app/types/types"
       ],
       "@/types/*": [
         "./app/types/*"

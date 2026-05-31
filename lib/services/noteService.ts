@@ -36,7 +36,7 @@ export async function getAllNotes(userId: string): Promise<NoteResponse[]> {
     await dbConnect();
 
     // Dynamically import to avoid circular dependency issues
-    const { default: Note } = await import('../../server/models/mongoDB/Note.js');
+    const { default: Note } = await import('../models/Note');
     const notes = await Note.find({ userId }).sort({ createdAt: -1 }).lean();
     return notes as NoteResponse[];
   } catch (error) {
@@ -56,7 +56,7 @@ export async function getNoteById(
   try {
     await dbConnect();
 
-    const { default: Note } = await import('../../server/models/mongoDB/Note.js');
+    const { default: Note } = await import('../models/Note');
     const note = await Note.findOne({ _id: noteId, userId }).lean();
     if (!note) {
       return null;
@@ -83,7 +83,7 @@ export async function createNote(
 
     await dbConnect();
 
-    const { default: Note } = await import('../../server/models/mongoDB/Note.js');
+    const { default: Note } = await import('../models/Note');
 
     const noteData: NoteData = {
       title: data.title.trim(),
@@ -117,7 +117,7 @@ export async function updateNote(
   try {
     await dbConnect();
 
-    const { default: Note } = await import('../../server/models/mongoDB/Note.js');
+    const { default: Note } = await import('../models/Note');
 
     const note = await Note.findOne({ _id: noteId, userId });
     if (!note) {
@@ -176,7 +176,7 @@ export async function deleteNote(noteId: string, userId: string): Promise<boolea
   try {
     await dbConnect();
 
-    const { default: Note } = await import('../../server/models/mongoDB/Note.js');
+    const { default: Note } = await import('../models/Note');
 
     const deletedNote = await Note.findOneAndDelete({ _id: noteId, userId });
     if (!deletedNote) {

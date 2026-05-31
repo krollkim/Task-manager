@@ -32,8 +32,7 @@ async function dbConnect() {
     const opts = {
       bufferCommands: false,
       retryWrites: true,
-      w: 'majority',
-    };
+    } as any;
 
     cached.promise = mongoose
       .connect(MONGODB_URI, opts)

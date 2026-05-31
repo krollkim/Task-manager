@@ -4,17 +4,32 @@ import React from 'react';
 import Link from 'next/link';
 
 interface NavbarProps {
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  onMenuClick?: () => void;
+  onOpenPalette?: () => void;
   onSidebarToggle?: () => void;
   isSidebarOpen?: boolean;
+  isMobile?: boolean;
 }
 
-export default function Navbar({ onSidebarToggle, isSidebarOpen }: NavbarProps) {
+export default function Navbar({
+  searchValue = '',
+  onSearchChange,
+  onMenuClick,
+  onOpenPalette,
+  onSidebarToggle,
+  isSidebarOpen,
+  isMobile,
+}: NavbarProps) {
+  const handleMenuClick = onMenuClick ?? onSidebarToggle;
+
   return (
     <nav className="pro-sidebar-gradient pro-rounded-lg pro-shadow h-16 flex items-center justify-between px-4 md:px-6">
       {/* Left Section - Menu & Title */}
       <div className="flex items-center space-x-4">
         <button
-          onClick={onSidebarToggle}
+          onClick={handleMenuClick}
           className="p-2 text-white hover:bg-white/10 transition-colors duration-200 rounded-lg md:hidden"
           aria-label="Toggle sidebar"
         >
@@ -28,13 +43,30 @@ export default function Navbar({ onSidebarToggle, isSidebarOpen }: NavbarProps) 
         </Link>
       </div>
 
-      {/* Right Section - User Menu */}
-      <div className="flex items-center space-x-4">
-        <button className="p-2 text-white hover:bg-white/10 transition-colors duration-200 rounded-lg" aria-label="Search">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
+      {/* Center - Search (desktop) */}
+      {onSearchChange && !isMobile && (
+        <div className="flex-1 max-w-md mx-6">
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search tasks..."
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/40 text-sm focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
+          />
+        </div>
+      )}
+
+      {/* Right Section */}
+      <div className="flex items-center space-x-2">
+        {onOpenPalette && (
+          <button
+            onClick={onOpenPalette}
+            className="p-2 text-white/60 hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg text-xs font-medium hidden md:flex items-center gap-1"
+            aria-label="Open command palette"
+          >
+            <span>CMD+K</span>
+          </button>
+        )}
 
         <button className="p-2 text-white hover:bg-white/10 transition-colors duration-200 rounded-lg" aria-label="Notifications">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

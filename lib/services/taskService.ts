@@ -7,7 +7,7 @@ import dbConnect from '@/lib/db';
 
 export interface TaskData {
   _id?: string;
-  task: string;
+  title: string;
   description?: string;
   status?: 'todo' | 'in-progress' | 'done';
   priority?: 'low' | 'medium' | 'high' | 'urgent';
@@ -33,13 +33,13 @@ export async function getAllTasks(userId: string): Promise<TaskData[]> {
 
     // Import Task model dynamically
     // eslint-disable-next-line global-require
-    const Task = require('@/server/models/mongoDB/Task').default;
+    const Task = require('../models/Task').default;
 
     const tasks = await Task.find({ userId }).sort({ createdAt: -1 });
 
     return tasks.map((doc: any) => ({
       _id: doc._id,
-      task: doc.task,
+      title: doc.task,
       description: doc.description || '',
       status: doc.status || 'todo',
       priority: doc.priority || 'medium',
@@ -69,7 +69,7 @@ export async function getTaskById(id: string, userId: string): Promise<TaskData 
     await dbConnect();
 
     // eslint-disable-next-line global-require
-    const Task = require('@/server/models/mongoDB/Task').default;
+    const Task = require('../models/Task').default;
 
     const task = await Task.findById(id);
 
@@ -84,7 +84,7 @@ export async function getTaskById(id: string, userId: string): Promise<TaskData 
 
     return {
       _id: task._id,
-      task: task.task,
+      title: task.task,
       description: task.description || '',
       status: task.status || 'todo',
       priority: task.priority || 'medium',
@@ -115,17 +115,17 @@ export async function getTaskById(id: string, userId: string): Promise<TaskData 
 export async function createTask(userId: string, data: Partial<TaskData>): Promise<TaskData> {
   try {
     // Validate required fields
-    if (!data.task || typeof data.task !== 'string' || data.task.trim() === '') {
+    if (!data.title || typeof data.title !== 'string' || data.title.trim() === '') {
       throw new Error('Task title is required and must be a non-empty string');
     }
 
     await dbConnect();
 
     // eslint-disable-next-line global-require
-    const Task = require('@/server/models/mongoDB/Task').default;
+    const Task = require('../models/Task').default;
 
     const taskData = {
-      task: data.task.trim(),
+      task: data.title.trim(),
       description: data.description || '',
       status: data.status || 'todo',
       priority: data.priority || 'medium',
@@ -144,7 +144,7 @@ export async function createTask(userId: string, data: Partial<TaskData>): Promi
 
     return {
       _id: task._id,
-      task: task.task,
+      title: task.task,
       description: task.description,
       status: task.status,
       priority: task.priority,
@@ -182,7 +182,7 @@ export async function updateTask(
     await dbConnect();
 
     // eslint-disable-next-line global-require
-    const Task = require('@/server/models/mongoDB/Task').default;
+    const Task = require('../models/Task').default;
 
     const task = await Task.findById(id);
 
@@ -196,11 +196,11 @@ export async function updateTask(
     }
 
     // Update allowed fields
-    if (data.task !== undefined) {
-      if (!data.task || typeof data.task !== 'string' || data.task.trim() === '') {
+    if (data.title !== undefined) {
+      if (!data.title || typeof data.title !== 'string' || data.title.trim() === '') {
         throw new Error('Task title must be a non-empty string');
       }
-      task.task = data.task.trim();
+      task.task = data.title.trim();
     }
 
     if (data.description !== undefined) {
@@ -257,7 +257,7 @@ export async function updateTask(
 
     return {
       _id: task._id,
-      task: task.task,
+      title: task.task,
       description: task.description,
       status: task.status,
       priority: task.priority,
@@ -291,7 +291,7 @@ export async function deleteTask(id: string, userId: string): Promise<boolean> {
     await dbConnect();
 
     // eslint-disable-next-line global-require
-    const Task = require('@/server/models/mongoDB/Task').default;
+    const Task = require('../models/Task').default;
 
     const task = await Task.findById(id);
 
@@ -333,7 +333,7 @@ export async function quickReschedule(
     await dbConnect();
 
     // eslint-disable-next-line global-require
-    const Task = require('@/server/models/mongoDB/Task').default;
+    const Task = require('../models/Task').default;
 
     const task = await Task.findById(id);
 
@@ -351,7 +351,7 @@ export async function quickReschedule(
 
     return {
       _id: task._id,
-      task: task.task,
+      title: task.task,
       description: task.description,
       status: task.status,
       priority: task.priority,

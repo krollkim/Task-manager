@@ -52,6 +52,7 @@ export async function getSession(request?: any): Promise<AuthSession | null> {
 
 /**
  * Extract user ID from request headers or session
+ * Checks Authorization Bearer header first, then falls back to auth-token cookie.
  */
 export function extractUserId(headers: Headers): string | null {
   try {
@@ -65,8 +66,19 @@ export function extractUserId(headers: Headers): string | null {
       }
     }
 
-    // Note: Cannot access cookies from headers directly
-    // Cookies are handled by the browser and Next.js automatically
+    // Fallback: parse auth-token from Cookie header (set by login route as HTTP-only cookie)
+    const cookieHeader = headers.get('cookie')
+    if (cookieHeader) {
+      const match = cookieHeader.match(/(?:^|;\s*)auth-token=([^;]+)/)
+      if (match) {
+        const token = decodeURIComponent(match[1])
+        const decoded = verifyToken(token)
+        if (decoded) {
+          return decoded.userId
+        }
+      }
+    }
+
     return null
   } catch {
     return null

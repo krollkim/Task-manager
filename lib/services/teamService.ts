@@ -1,6 +1,6 @@
 import dbConnect from '../db';
-import Invite from '../../server/models/mongoDB/Invite';
-import TeamMember from '../../server/models/mongoDB/TeamMember';
+import Invite from '../models/Invite';
+import TeamMember from '../models/TeamMember';
 import { v4 as uuidv4 } from 'uuid';
 import type { Invite as InviteType, TeamMember as TeamMemberType } from '../../app/types/types';
 

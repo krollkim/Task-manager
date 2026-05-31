@@ -100,7 +100,7 @@ export async function getMeetingById(
 ): Promise<Meeting | null> {
   const Meeting = getMeetingModel()
 
-  const meeting = await Meeting.findOne({ _id: id, userId })
+  const meeting = await Meeting.findOne({ _id: id, userId } as any)
   if (!meeting) {
     return null
   }
@@ -165,7 +165,7 @@ export async function updateMeeting(
   const Meeting = getMeetingModel()
 
   // Verify ownership
-  const meeting = await Meeting.findOne({ _id: id, userId })
+  const meeting = await Meeting.findOne({ _id: id, userId } as any)
   if (!meeting) {
     throw new Error('Meeting not found')
   }
@@ -226,7 +226,7 @@ export async function updateMeeting(
 export async function deleteMeeting(id: string, userId: string): Promise<boolean> {
   const Meeting = getMeetingModel()
 
-  const result = await Meeting.findOneAndDelete({ _id: id, userId })
+  const result = await Meeting.findOneAndDelete({ _id: id, userId } as any)
   return !!result
 }
 
@@ -245,7 +245,7 @@ export async function updateRecurringMeeting(
   const Meeting = getMeetingModel()
 
   // Get the base meeting
-  const base = await Meeting.findOne({ _id: baseId, userId })
+  const base = await Meeting.findOne({ _id: baseId, userId } as any)
   if (!base) {
     throw new Error('Meeting not found')
   }

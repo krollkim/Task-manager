@@ -44,18 +44,21 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/tasks
  * Create a new task
- * Body: { task: string, description?: string, status?: string, priority?: string, dueDate?: string, estimateMinutes?: number }
+ * Body: { title: string, description?: string, status?: string, priority?: string, dueDate?: string, estimateMinutes?: number }
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Support both 'title' and 'task' field names for backward compatibility
+    const taskTitle = body.title || body.task;
+
     // Validate required fields
-    if (!body.task || typeof body.task !== 'string' || body.task.trim() === '') {
+    if (!taskTitle || typeof taskTitle !== 'string' || taskTitle.trim() === '') {
       return NextResponse.json(
         {
           success: false,
-          error: 'Task is required and must be a non-empty string.',
+          error: 'Title is required and must be a non-empty string.',
         },
         { status: 400 }
       );
@@ -75,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     const newTask = await createTask(userId, {
-      task: body.task.trim(),
+      title: taskTitle.trim(),
       description: body.description || '',
       status: body.status || 'todo',
       priority: body.priority || 'medium',

@@ -89,7 +89,12 @@ export async function PATCH(
 ) {
   try {
     const taskId = params.id;
-    const updatedData = await request.json();
+    let updatedData = await request.json();
+
+    // Support both 'title' and 'task' field names for backward compatibility
+    if (updatedData.task && !updatedData.title) {
+      updatedData.title = updatedData.task;
+    }
 
     if (!taskId) {
       return NextResponse.json(

@@ -9,15 +9,16 @@ export interface Note {
   createdAt: Date;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const getAllNotes = async (): Promise<Note[]> => {
-  const response = await fetch(`${API_URL}/api/notes`, {
+  const response = await fetch(`${API_URL}/notes`, {
     credentials: 'include',
   });
   if (!response.ok) throw new Error('Failed to fetch notes');
-  const notes = await response.json();
-  return notes.map((note: any) => ({
+  const { data } = await response.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((note: any) => ({
     ...note,
     createdAt: new Date(note.createdAt),
   }));
@@ -28,7 +29,7 @@ const createNote = async (noteData: {
   content?: string;
   pinned?: boolean;
 }): Promise<Note> => {
-  const response = await fetch(`${API_URL}/api/notes`, {
+  const response = await fetch(`${API_URL}/notes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -43,7 +44,7 @@ const updateNote = async (
   noteId: string,
   updates: Partial<{ title: string; content: string; pinned: boolean }>
 ): Promise<Note> => {
-  const response = await fetch(`${API_URL}/api/notes/${noteId}`, {
+  const response = await fetch(`${API_URL}/notes/${noteId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -55,7 +56,7 @@ const updateNote = async (
 };
 
 const deleteNote = async (noteId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/notes/${noteId}`, {
+  const response = await fetch(`${API_URL}/notes/${noteId}`, {
     method: 'DELETE',
     credentials: 'include',
   });

@@ -275,8 +275,8 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
 
         {/* Status Badge */}
         <div className={isCompact ? 'col-span-3' : 'col-span-2'}>
-          <span className={`${getStatusColor(task.status)} border font-medium text-xs capitalize px-2 py-1 rounded-full inline-block`}>
-            {task.status.replace('-', ' ')}
+          <span className={`${getStatusColor(task.status || 'todo')} border font-medium text-xs capitalize px-2 py-1 rounded-full inline-block`}>
+            {(task.status || 'todo').replace('-', ' ')}
           </span>
         </div>
 
@@ -356,7 +356,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({
 
         <div className="flex items-center justify-between pl-9">
           <span className={`${getStatusColor(task.status)} border font-medium text-xs capitalize px-2 py-1 rounded-full`}>
-            {task.status.replace('-', ' ')}
+            {(task.status || 'todo').replace('-', ' ')}
           </span>
           <div className="flex items-center space-x-2 text-white/40 text-xs">
             <button

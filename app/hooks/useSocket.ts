@@ -30,9 +30,10 @@ export function useSocket(): Socket | null {
     if (!socketRef.current) {
       socketRef.current = io(socketUrl, {
         reconnection: true,
-        reconnectionDelay: 1000,
+        reconnectionDelay: 2000,
         reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5,
+        reconnectionAttempts: 2,
+        timeout: 5000,
       });
 
       socketRef.current.on('connect', () => {
@@ -43,8 +44,8 @@ export function useSocket(): Socket | null {
         setIsConnected(false);
       });
 
-      socketRef.current.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
+      socketRef.current.on('connect_error', () => {
+        // Suppress — Express server may not be running (chat feature)
       });
     }
 

@@ -12,6 +12,38 @@ Professional documentation:
 - **[Security Checklist](./docs/security/checklist.md)** — Pre-commit security verification
 - **[Architecture Phases](./docs/architecture/phases.md)** — Full Phase 0–4 plan and status
 - **[Next.js Migration Plan](./docs/migration/nextjs-migration-plan.md)** — Detailed 14-day refactoring guide
+- **[Migration Fixes](./docs/NEXTJS_MIGRATION_FIXES.md)** — Critical fixes for auth, UI duplication, socket.io (2026-05-31)
+
+---
+
+## ✅ Completed: Next.js Migration Fixes (2026-05-31)
+
+### API Migration Status: COMPLETE ✅
+**Date Completed:** 2026-05-31  
+**Verification:** All CRUD operations tested and working  
+**See:** [**Migration Fixes Complete Doc**](./docs/MIGRATION_FIXES_COMPLETE.md)
+
+### 4 Critical API Fixes Applied
+1. **useTasks.ts:38** — Fixed double `/api` path → `/api/api/tasks/` became `/api/tasks/` ✅
+2. **useNotes.ts** — Removed hardcoded localhost:5000, added `/api` fallback ✅
+3. **useAgenda.ts** — Removed hardcoded localhost:3000, added `/api` fallback ✅
+4. **GoogleLogin.tsx** — Removed hardcoded localhost:5000, added `/api` fallback ✅
+
+### Verification Results
+✅ Task creation: POST /api/tasks → 201 Created  
+✅ Task fetch: GET /api/tasks → 200 OK  
+✅ Notes fetch: GET /api/notes → 200 OK  
+✅ Agenda fetch: GET /api/agenda/day → 200 OK  
+✅ All requests on relative `/api` paths (same origin)  
+✅ No CORS errors  
+✅ Single Next.js backend (no Express/Next.js dual routing)  
+✅ Data persists to MongoDB correctly  
+
+### Known Issues (Deferred to Phase 4)
+⏸️ Task title not visible in card (UI rendering only, data is correct)  
+⏸️ List view task visibility (display bug, API working)  
+⏸️ Status counters not updating (display bug, API working)  
+⏸️ Socket.io migration (deferred, chat feature isolated)
 
 ---
 

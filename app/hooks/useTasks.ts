@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Task, ModalMode } from '@/types';
+import { Task } from '@/types/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const getTasks = async (): Promise<Task[]> => {
-  const response = await fetch(`${API_URL}/api/tasks`, {
+  const response = await fetch(`${API_URL}/tasks`, {
     credentials: 'include',
   });
   if (!response.ok) throw new Error('Failed to fetch tasks');
-  return response.json();
+  const { data } = await response.json();
+  return Array.isArray(data) ? data : [];
 };
 
 const addTask = async (task: Omit<Task, '_id' | 'createdAt'>): Promise<Task> => {
-  const response = await fetch(`${API_URL}/api/tasks`, {
+  const response = await fetch(`${API_URL}/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -23,7 +24,7 @@ const addTask = async (task: Omit<Task, '_id' | 'createdAt'>): Promise<Task> => 
 };
 
 const deleteTask = async (_id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/tasks/${_id}`, {
+  const response = await fetch(`${API_URL}/tasks/${_id}`, {
     method: 'DELETE',
     credentials: 'include',
   });
@@ -34,7 +35,7 @@ const editTask = async (
   _id: string,
   updates: Partial<Task>
 ): Promise<Task> => {
-  const response = await fetch(`${API_URL}/api/tasks/${_id}`, {
+  const response = await fetch(`${API_URL}/tasks/${_id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -48,7 +49,7 @@ export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<ModalMode>('edit');
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('edit');
 
   // Load tasks on mount
   useEffect(() => {
@@ -95,7 +96,7 @@ export const useTasks = () => {
     }
   };
 
-  const openModal = (task: Task, mode: ModalMode) => {
+  const openModal = (task: Task, mode: 'add' | 'edit') => {
     setTaskToEdit(task);
     setModalMode(mode);
     setIsOpen(true);

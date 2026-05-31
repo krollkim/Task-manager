@@ -1,8 +1,8 @@
 import dbConnect from '../db';
-import Task from '../../server/models/mongoDB/Task';
-import Note from '../../server/models/mongoDB/Note';
-import Meeting from '../../server/models/mongoDB/Meeting';
-import Message from '../../server/models/mongoDB/Message';
+import Task from '../models/Task';
+import Note from '../models/Note';
+import Meeting from '../models/Meeting';
+import Message from '../models/Message';
 import type { SearchResult, SearchResults } from '../../app/types/types';
 
 /**

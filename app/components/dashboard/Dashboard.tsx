@@ -16,6 +16,8 @@ import CalendarModal from '@/components/modals/CalendarModal';
 import ChatPanel from '@/components/chat/ChatPanel';
 import CommandPalette from '@/components/modals/CommandPalette';
 import { SocketProvider } from '@/contexts/SocketContext';
+import TaskViewToggle from '@/components/dashboard/TaskViewToggle';
+import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import { useTasks } from '@/hooks/useTasks';
 import { useViewPreference } from '@/hooks/useViewPreference';
 import { useAgenda } from '@/hooks/useAgenda';
@@ -117,10 +119,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
   }, [isMobile]);
 
   // Filter tasks based on search
-  const filteredTasks = tasks.filter(
+  const filteredTasks = (Array.isArray(tasks) ? tasks : []).filter(
     (task) =>
-      task.task.toLowerCase().includes(searchValue.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchValue.toLowerCase())
+      (task.title ?? '').toLowerCase().includes(searchValue.toLowerCase()) ||
+      (task.description ?? '').toLowerCase().includes(searchValue.toLowerCase())
   );
 
   // Group tasks by status

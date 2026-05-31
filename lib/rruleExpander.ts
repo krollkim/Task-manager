@@ -1,5 +1,4 @@
-import pkg from 'rrule'
-const { RRule } = pkg
+import { RRule } from 'rrule'
 
 /**
  * Expand a recurring base meeting into virtual instances within [startDate, endDate].
