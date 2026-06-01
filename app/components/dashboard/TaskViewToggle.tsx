@@ -40,6 +40,34 @@ const TaskViewToggle: React.FC<TaskViewToggleProps> = ({
       >
         List
       </button>
+
+      {/* Density selector appears when list view is active */}
+      {viewMode === 'list' && (
+        <div className="flex items-center gap-1 ml-2 pl-2 border-l border-white/20">
+          <button
+            onClick={() => onDensityChange('comfortable')}
+            className={`px-2 py-1 text-xs rounded transition-colors ${
+              listDensity === 'comfortable'
+                ? 'bg-green-600/40 text-green-300 border border-green-500/50'
+                : 'bg-white/10 text-white/60 hover:text-white'
+            }`}
+            title="Comfortable spacing"
+          >
+            Normal
+          </button>
+          <button
+            onClick={() => onDensityChange('compact')}
+            className={`px-2 py-1 text-xs rounded transition-colors ${
+              listDensity === 'compact'
+                ? 'bg-purple-600/40 text-purple-300 border border-purple-500/50'
+                : 'bg-white/10 text-white/60 hover:text-white'
+            }`}
+            title="Compact spacing"
+          >
+            Compact
+          </button>
+        </div>
+      )}
     </div>
   );
 };
