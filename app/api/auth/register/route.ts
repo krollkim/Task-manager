@@ -1,122 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/db'
-import { createUser, generateToken } from '@/lib/services/authService'
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/db';
+import { signToken, setAuthCookie } from '@/lib/auth';
+import User from '@/models/mongoDB/User';
+import bcrypt from 'bcrypt';
 
-interface RegisterRequest {
-  name: string
-  email: string
-  password: string
-}
-
-interface RegisterResponse {
-  success: boolean
-  data?: {
-    user: {
-      id: string
-      email: string
-      name: string
-    }
-    token: string
-  }
-  error?: string
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse<RegisterResponse>> {
+export async function POST(request: NextRequest) {
   try {
-    // Connect to database
-    await dbConnect()
+    await connectDB();
 
-    // Parse request body
-    const body: RegisterRequest = await request.json()
+    const { name, email, password } = await request.json();
 
-    // Validate required fields
-    if (!body.email || !body.password || !body.name) {
+    // Validation
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { success: false, error: 'Email, password, and name are required' },
+        { error: 'Name, email, and password are required' },
         { status: 400 }
-      )
+      );
     }
 
-    // Trim fields
-    const email = body.email.trim().toLowerCase()
-    const name = body.name.trim()
-    const password = body.password
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    // Check if user already exists
+    const existing = await User.findOne({ email });
+    if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Invalid email format' },
+        { error: 'Email already exists' },
         { status: 400 }
-      )
+      );
     }
 
-    // Validate name (at least 2 characters)
-    if (name.length < 2) {
-      return NextResponse.json(
-        { success: false, error: 'Name must be at least 2 characters' },
-        { status: 400 }
-      )
-    }
-
-    // Validate password strength (minimum 6 characters)
-    if (password.length < 6) {
-      return NextResponse.json(
-        { success: false, error: 'Password must be at least 6 characters' },
-        { status: 400 }
-      )
-    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await createUser({
+    const user = await User.create({
       name,
       email,
-      password,
-    })
+      password: hashedPassword,
+    });
 
-    // Generate token
-    const token = generateToken(user._id)
+    // Generate JWT token
+    const token = signToken(user._id.toString());
 
-    // Create response
+    // Create response and set cookie
     const response = NextResponse.json(
-      {
-        success: true,
-        data: {
-          user: {
-            id: user._id,
-            email: user.email,
-            name: user.name,
-          },
-          token,
-        },
-      },
+      { user: { id: user._id, name: user.name, email: user.email } },
       { status: 201 }
-    )
+    );
 
-    // Set secure HTTP-only cookie
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/',
-    })
-
-    return response
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Registration failed'
-
-    // Handle duplicate email error (MongoDB unique constraint)
-    if (message.includes('duplicate') || message.includes('already exists')) {
-      return NextResponse.json(
-        { success: false, error: 'User with this email already exists' },
-        { status: 400 }
-      )
-    }
-
+    await setAuthCookie(token, response);
+    return response;
+  } catch (error: any) {
+    console.error('Register error:', error);
     return NextResponse.json(
-      { success: false, error: message },
+      { error: error.message || 'Server error' },
       { status: 500 }
-    )
+    );
   }
 }

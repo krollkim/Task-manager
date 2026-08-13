@@ -1,58 +1,41 @@
 'use client';
 
-import React, { createContext, useRef, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
+import React, { createContext, useContext, useState } from 'react';
+import { ChatMessage, PresenceUser } from '@/types/types';
 
-interface SocketContextType {
-  socket: Socket | null;
+interface SocketContextValue {
+  onlineUsers: PresenceUser[];
+  messages: ChatMessage[];
+  sendMessage: (roomId: string, text: string) => void;
+  convertMessage: (messageId: string, type: 'task' | 'note') => void;
+  fetchHistory: (roomId: string) => Promise<void>;
 }
 
-export const SocketContext = createContext<SocketContextType | undefined>(
-  undefined
-);
+const SocketContext = createContext<SocketContextValue | null>(null);
 
-export const useSocket = () => {
-  const context = React.useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within SocketProvider');
-  }
-  return context.socket;
-};
+export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [onlineUsers] = useState<PresenceUser[]>([]);
+  const [messages] = useState<ChatMessage[]>([]);
 
-interface SocketProviderProps {
-  children: ReactNode;
-}
-
-export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-  const socketRef = useRef<Socket | null>(null);
-
-  if (!socketRef.current) {
-    try {
-      // Use explicit socket server URL (separate Express server on port 5001)
-      // Falls back gracefully if the server is not running
-      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5001';
-      const socket = io(socketUrl, {
-        withCredentials: true,
-        autoConnect: false,
-        reconnectionAttempts: 3,
-        timeout: 5000,
-      });
-
-      socket.on('connect_error', () => {
-        // Suppress connection errors when Express server is not running
-      });
-
-      socket.connect();
-      socketRef.current = socket;
-    } catch {
-      // Socket initialization failed; context provides null socket
-      socketRef.current = null;
-    }
-  }
+  const sendMessage = () => {
+    // Socket.io server implementation deferred to Phase 4
+  };
+  const convertMessage = () => {
+    // Socket.io server implementation deferred to Phase 4
+  };
+  const fetchHistory = async () => {
+    // Socket.io server implementation deferred to Phase 4
+  };
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current }}>
+    <SocketContext.Provider value={{ onlineUsers, messages, sendMessage, convertMessage, fetchHistory }}>
       {children}
     </SocketContext.Provider>
   );
+};
+
+export const useSocket = (): SocketContextValue => {
+  const ctx = useContext(SocketContext);
+  if (!ctx) throw new Error('useSocket must be used within a SocketProvider');
+  return ctx;
 };

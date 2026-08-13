@@ -1,103 +1,61 @@
-import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/db'
-import { getAllMeetings, createMeeting } from '@/lib/services/meetingService'
-import { extractUserId } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/db';
+import { getAuthenticatedUser, respondUnauthorized } from '@/lib/auth';
+import { getMeetings, createMeeting } from '@/models/MeetingAccessDataService';
 
-/**
- * GET /api/meetings
- * Fetch all meetings for the authenticated user, optionally filtered by teamId
- * Query params: ?teamId=<optional>
- */
+// GET /api/meetings
 export async function GET(request: NextRequest) {
   try {
-    await dbConnect()
+    await connectDB();
 
-    const userId = extractUserId(request.headers)
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
 
-    // Extract optional teamId from query params
-    const { searchParams } = new URL(request.url)
-    const teamId = searchParams.get('teamId')
-
-    const meetings = await getAllMeetings(userId, teamId)
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: meetings,
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error('[GET /api/meetings]', message)
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    )
+    const meetings = await getMeetings(user.id);
+    return NextResponse.json(meetings, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-/**
- * POST /api/meetings
- * Create a new meeting
- * Body: { title, description?, date, startTime?, endTime?, rrule?, teamId? }
- */
+// POST /api/meetings
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect()
+    await connectDB();
 
-    const userId = extractUserId(request.headers)
-    if (!userId) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
+
+    const body = await request.json();
+    const { title, description, date, startTime, endTime, rrule } = body;
+
+    if (!title || typeof title !== 'string' || title.trim() === '') {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const body = await request.json()
-
-    // Validate required fields
-    if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
-      return NextResponse.json(
-        { success: false, error: 'Meeting title is required and must be a non-empty string.' },
+        { error: 'Meeting title is required and must be a non-empty string.' },
         { status: 400 }
-      )
+      );
     }
 
-    if (!body.date) {
+    if (!date) {
       return NextResponse.json(
-        { success: false, error: 'Meeting date is required.' },
+        { error: 'Meeting date is required.' },
         { status: 400 }
-      )
+      );
     }
 
-    const newMeeting = await createMeeting(userId, body)
+    const meetingData = {
+      title: title.trim(),
+      description: description || '',
+      date,
+      userId: user.id,
+      ...(startTime && { startTime }),
+      ...(endTime && { endTime }),
+      ...(rrule && { rrule, isRecurringBase: true }),
+    };
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: newMeeting,
-      },
-      { status: 201 }
-    )
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error('[POST /api/meetings]', message)
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    )
+    const newMeeting = await createMeeting(meetingData);
+    return NextResponse.json(newMeeting, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

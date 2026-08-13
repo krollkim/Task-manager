@@ -1,120 +1,103 @@
-'use client';
-
 import { create } from 'zustand';
-import { Task, Note, Meeting, Message, SearchResults, AgendaData } from '@/types/types';
+import { persist } from 'zustand/middleware';
+import {
+  Task,
+  Note,
+  Meeting,
+  AgendaData,
+  AgendaView,
+  WeekAgendaDay,
+  SearchResults,
+} from '@/types/types';
 
-/**
- * Zustand store for application state
- * TODO: Implement full store with all slices
- * Reference: Phase 0 from feature/architecture-v2
- *
- * Slices:
- * 1. Tasks - CRUD operations for tasks
- * 2. Notes - CRUD operations for notes
- * 3. Agenda - Day/week/month agenda views
- * 4. UI - Global UI state (modals, search, etc.)
- */
-
-interface TaskSlice {
+interface AppStore {
+  // TASK SLICE
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
-  addTask: (task: Task) => void;
-  updateTask: (id: string, task: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
-}
+  upsertTask: (task: Task) => void;
+  removeTask: (id: string) => void;
 
-interface NoteSlice {
+  // NOTE SLICE
   notes: Note[];
   setNotes: (notes: Note[]) => void;
-  addNote: (note: Note) => void;
-  updateNote: (id: string, note: Partial<Note>) => void;
-  deleteNote: (id: string) => void;
-}
+  upsertNote: (note: Note) => void;
+  removeNote: (id: string) => void;
 
-interface AgendaSlice {
-  meetings: Meeting[];
-  setMeetings: (meetings: Meeting[]) => void;
-  addMeeting: (meeting: Meeting) => void;
-  updateMeeting: (id: string, meeting: Partial<Meeting>) => void;
-  deleteMeeting: (id: string) => void;
-}
+  // AGENDA SLICE
+  agendaCache: Record<string, AgendaData>;
+  monthCache: Record<string, WeekAgendaDay[]>;
+  setDayAgenda: (dateKey: string, data: AgendaData) => void;
+  setMonthAgenda: (monthKey: string, data: WeekAgendaDay[]) => void;
+  invalidateAgenda: () => void;
 
-interface UISlice {
+  // UI SLICE (partially persisted to localStorage)
+  selectedDate: Date;
+  agendaView: AgendaView;
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
   searchResults: SearchResults | null;
-  setSearchResults: (results: SearchResults | null) => void;
   searchLoading: boolean;
+  setSelectedDate: (d: Date) => void;
+  setAgendaView: (v: AgendaView) => void;
+  setSearchQuery: (q: string) => void;
+  setSearchResults: (r: SearchResults | null) => void;
   setSearchLoading: (loading: boolean) => void;
-  // Modal state
-  isModalOpen: boolean;
-  setIsModalOpen: (open: boolean) => void;
 }
 
-type AppStore = TaskSlice & NoteSlice & AgendaSlice & UISlice;
+export const useAppStore = create<AppStore>()(
+  persist(
+    (set) => ({
+      // TASK SLICE
+      tasks: [],
+      setTasks: (tasks) => set({ tasks }),
+      upsertTask: (task) =>
+        set((state) => ({
+          tasks: state.tasks.some((t) => t._id === task._id)
+            ? state.tasks.map((t) => (t._id === task._id ? task : t))
+            : [...state.tasks, task],
+        })),
+      removeTask: (id) =>
+        set((state) => ({ tasks: state.tasks.filter((t) => t._id !== id) })),
 
-export const useAppStore = create<AppStore>((set) => ({
-  // Tasks
-  tasks: [],
-  setTasks: (tasks) => set({ tasks }),
-  addTask: (task) =>
-    set((state) => ({
-      tasks: [...state.tasks, task],
-    })),
-  updateTask: (id, task) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) =>
-        t._id === id ? { ...t, ...task } : t
-      ),
-    })),
-  deleteTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.filter((t) => t._id !== id),
-    })),
+      // NOTE SLICE
+      notes: [],
+      setNotes: (notes) => set({ notes }),
+      upsertNote: (note) =>
+        set((state) => ({
+          notes: state.notes.some((n) => n._id === note._id)
+            ? state.notes.map((n) => (n._id === note._id ? note : n))
+            : [...state.notes, note],
+        })),
+      removeNote: (id) =>
+        set((state) => ({ notes: state.notes.filter((n) => n._id !== id) })),
 
-  // Notes
-  notes: [],
-  setNotes: (notes) => set({ notes }),
-  addNote: (note) =>
-    set((state) => ({
-      notes: [...state.notes, note],
-    })),
-  updateNote: (id, note) =>
-    set((state) => ({
-      notes: state.notes.map((n) =>
-        n._id === id ? { ...n, ...note } : n
-      ),
-    })),
-  deleteNote: (id) =>
-    set((state) => ({
-      notes: state.notes.filter((n) => n._id !== id),
-    })),
+      // AGENDA SLICE
+      agendaCache: {},
+      monthCache: {},
+      setDayAgenda: (dateKey, data) =>
+        set((state) => ({
+          agendaCache: { ...state.agendaCache, [dateKey]: data },
+        })),
+      setMonthAgenda: (monthKey, data) =>
+        set((state) => ({
+          monthCache: { ...state.monthCache, [monthKey]: data },
+        })),
+      invalidateAgenda: () => set({ agendaCache: {}, monthCache: {} }),
 
-  // Meetings
-  meetings: [],
-  setMeetings: (meetings) => set({ meetings }),
-  addMeeting: (meeting) =>
-    set((state) => ({
-      meetings: [...state.meetings, meeting],
-    })),
-  updateMeeting: (id, meeting) =>
-    set((state) => ({
-      meetings: state.meetings.map((m) =>
-        m._id === id ? { ...m, ...meeting } : m
-      ),
-    })),
-  deleteMeeting: (id) =>
-    set((state) => ({
-      meetings: state.meetings.filter((m) => m._id !== id),
-    })),
-
-  // UI
-  searchQuery: '',
-  setSearchQuery: (query) => set({ searchQuery: query }),
-  searchResults: null,
-  setSearchResults: (results) => set({ searchResults: results }),
-  searchLoading: false,
-  setSearchLoading: (loading) => set({ searchLoading: loading }),
-  isModalOpen: false,
-  setIsModalOpen: (open) => set({ isModalOpen: open }),
-}));
+      // UI SLICE
+      selectedDate: new Date(),
+      agendaView: 'day',
+      searchQuery: '',
+      searchResults: null,
+      searchLoading: false,
+      setSelectedDate: (d) => set({ selectedDate: d }),
+      setAgendaView: (v) => set({ agendaView: v }),
+      setSearchQuery: (q) => set({ searchQuery: q }),
+      setSearchResults: (r) => set({ searchResults: r }),
+      setSearchLoading: (loading) => set({ searchLoading: loading }),
+    }),
+    {
+      name: 'app-ui-prefs',
+      partialize: (state) => ({ agendaView: state.agendaView }),
+    }
+  )
+);

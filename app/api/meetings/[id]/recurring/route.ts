@@ -1,120 +1,103 @@
-import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/db'
-import { updateRecurringMeeting } from '@/lib/services/meetingService'
-import { extractUserId } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/db';
+import { getAuthenticatedUser, respondUnauthorized } from '@/lib/auth';
+import Meeting from '@/models/mongoDB/Meeting';
+import { extractRrulePart, buildRrule } from '@/utils/rruleExpander';
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * PATCH /api/meetings/[id]/recurring
- * Handle scope-aware edit/delete for recurring meeting series
- *
- * Body: {
- *   scope: 'this' | 'following' | 'all',
- *   action: 'edit' | 'delete',
- *   date: 'YYYY-MM-DD' (the occurrence date),
- *   data?: { title, description, startTime, endTime, rruleFreq, ... }
- * }
- *
- * Response:
- * - scope 'this' + action 'edit': { base, exception }
- * - scope 'this' + action 'delete': { base }
- * - scope 'following' + action 'edit': { truncated, newBase }
- * - scope 'following' + action 'delete': { truncated }
- * - scope 'all' + action 'edit': { base }
- * - scope 'all' + action 'delete': { base }
- */
+// PATCH /api/meetings/[id]/recurring
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect()
+    await connectDB();
 
-    const { id: baseId } = params
-    const body = await request.json()
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
 
-    if (!baseId) {
-      return NextResponse.json(
-        { success: false, error: 'Base meeting ID is required' },
-        { status: 400 }
-      )
-    }
-
-    const userId = extractUserId(request.headers)
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Validate required fields
-    const { scope, action, date, data } = body
+    const body = await request.json();
+    const { scope, action, date, data } = body;
 
     if (!scope || !action || !date) {
       return NextResponse.json(
-        { success: false, error: 'scope, action, and date are required' },
+        { error: 'scope, action, and date are required' },
         { status: 400 }
-      )
+      );
     }
 
-    if (!['this', 'following', 'all'].includes(scope)) {
-      return NextResponse.json(
-        { success: false, error: 'scope must be "this", "following", or "all"' },
-        { status: 400 }
-      )
+    const base = await Meeting.findOne({ _id: params.id, userId: user.id });
+    if (!base) {
+      return NextResponse.json({ error: 'Meeting not found' }, { status: 404 });
     }
 
-    if (!['edit', 'delete'].includes(action)) {
-      return NextResponse.json(
-        { success: false, error: 'action must be "edit" or "delete"' },
-        { status: 400 }
-      )
+    const occurrenceDate = new Date(date + 'T00:00:00.000Z');
+
+    // scope: 'this'
+    if (scope === 'this') {
+      if (!base.exceptedDates.includes(date)) {
+        base.exceptedDates.push(date);
+        await base.save();
+      }
+
+      if (action === 'edit') {
+        const exception = await Meeting.create({
+          _id: uuidv4(),
+          userId: user.id,
+          title: (data?.title || base.title).trim(),
+          description: data?.description ?? base.description,
+          date: occurrenceDate,
+          startTime: data?.startTime ?? base.startTime,
+          endTime: data?.endTime ?? base.endTime,
+          recurringId: base._id,
+          isRecurringBase: false,
+        });
+        return NextResponse.json({ exception, base }, { status: 201 });
+      }
+      return NextResponse.json({ base }, { status: 200 });
     }
 
-    const result = await updateRecurringMeeting(
-      baseId,
-      userId,
-      scope as 'this' | 'following' | 'all',
-      action as 'edit' | 'delete',
-      { date, ...data }
-    )
+    // scope: 'following'
+    if (scope === 'following') {
+      const dayBefore = new Date(occurrenceDate.getTime() - 24 * 60 * 60 * 1000);
+      const untilStr = dayBefore.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+      const rrulePart = base.rrule || '';
+      const stripped = rrulePart.replace(/;?UNTIL=[^;\n\r]+/g, '');
 
-    // Determine status code based on action
-    const statusCode = action === 'edit' ? 201 : 200
+      if (stripped.includes('RRULE:')) {
+        base.rrule = stripped.replace(/^(RRULE:[^\n]*)/, `$1;UNTIL=${untilStr}`);
+      } else if (stripped) {
+        base.rrule = stripped + `;UNTIL=${untilStr}`;
+      }
+      await base.save();
+
+      if (action === 'edit') {
+        const baseFreq = extractRrulePart(base.rrule);
+        const newFreq = data?.rruleFreq || baseFreq;
+        const newRrule = buildRrule(newFreq, occurrenceDate);
+
+        const newBase = await Meeting.create({
+          _id: uuidv4(),
+          userId: user.id,
+          title: (data?.title || base.title).trim(),
+          description: data?.description ?? base.description,
+          date: occurrenceDate,
+          startTime: data?.startTime ?? base.startTime,
+          endTime: data?.endTime ?? base.endTime,
+          rrule: newRrule,
+          isRecurringBase: true,
+          recurringId: base._id,
+        });
+        return NextResponse.json({ truncated: base, newBase }, { status: 201 });
+      }
+      return NextResponse.json({ truncated: base }, { status: 200 });
+    }
 
     return NextResponse.json(
-      {
-        success: true,
-        data: result,
-      },
-      { status: statusCode }
-    )
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error('[PATCH /api/meetings/[id]/recurring]', message)
-
-    // Return 404 for not found errors
-    if (message.includes('not found')) {
-      return NextResponse.json(
-        { success: false, error: message },
-        { status: 404 }
-      )
-    }
-
-    // Return 400 for validation errors
-    if (message.includes('scope') || message.includes('Invalid')) {
-      return NextResponse.json(
-        { success: false, error: message },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    )
+      { error: 'scope must be "this" or "following"' },
+      { status: 400 }
+    );
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

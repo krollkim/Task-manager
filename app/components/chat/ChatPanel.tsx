@@ -21,7 +21,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || typeof socket.on !== 'function') return;
 
     // Listen for messages
     socket.on('message', (msg) => {
@@ -35,13 +35,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
     });
 
     return () => {
-      socket.off('message');
-      socket.off('history');
+      if (typeof socket.off === 'function') {
+        socket.off('message');
+        socket.off('history');
+      }
     };
   }, [socket]);
 
   useEffect(() => {
-    if (isOpen && socket) {
+    if (isOpen && socket && typeof socket.emit === 'function') {
       // Request message history for the room
       socket.emit('getHistory', ROOM_ID);
     }

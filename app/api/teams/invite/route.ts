@@ -1,80 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createInvite } from '@/lib/services/teamService';
+import { connectDB } from '@/lib/db';
+import { getAuthenticatedUser, respondUnauthorized } from '@/lib/auth';
+import Invite from '@/models/mongoDB/Invite';
+import { v4 as uuidv4 } from 'uuid';
 
-// TODO: Use extractUserId when auth is implemented
-// import { extractUserId } from '@/lib/auth';
-
-/**
- * POST /api/teams/invite
- * Create an invite link for a workspace
- *
- * Body: { email, workspaceId? }
- * Returns: { success, data: { inviteUrl, email, token } }
- */
+// POST /api/teams/invite
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
+
     const body = await request.json();
-    const { email, workspaceId } = body;
+    const { email } = body;
 
-    // Validate email
-    if (!email || typeof email !== 'string') {
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Email is required',
-        },
+        { error: 'Valid email address is required' },
         { status: 400 }
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid email format',
-        },
-        { status: 400 }
-      );
+    const existing = await Invite.findOne({
+      email: email.toLowerCase().trim(),
+      status: 'pending',
+    });
+
+    if (existing && existing.expiresAt > new Date()) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003';
+      const inviteUrl = `${appUrl}/join/${existing.token}`;
+      return NextResponse.json({ invite: existing, inviteUrl }, { status: 200 });
     }
 
-    // TODO: Extract user from auth session
-    // const userId = extractUserId(request.headers);
-    // if (!userId) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    const token = uuidv4();
+    const invite = await Invite.create({
+      _id: uuidv4(),
+      email: email.toLowerCase().trim(),
+      token,
+      invitedBy: user.id,
+    });
 
-    // Placeholder userId; replace with actual auth
-    const userId = 'placeholder-user-id';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003';
+    const inviteUrl = `${appUrl}/join/${invite.token}`;
 
-    // Create invite
-    const { token, inviteUrl } = await createInvite(
-      userId,
-      email,
-      workspaceId || 'default'
-    );
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: {
-          inviteUrl,
-          email,
-          token,
-          expiresIn: '7 days',
-        },
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ invite, inviteUrl }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

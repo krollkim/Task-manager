@@ -1,7 +1,5 @@
-/**
- * Shared TypeScript types for the application
- * TODO: Extend with complete type definitions
- */
+// Component modal modes
+export type ModalMode = 'edit' | 'preview';
 
 // User types
 export interface User {
@@ -16,15 +14,17 @@ export interface User {
 export interface Task {
   _id: string;
   title: string;
+  task?: string;
   description?: string;
   status: 'todo' | 'in-progress' | 'done';
-  priority: 'urgent' | 'high' | 'medium' | 'low' | 'none';
+  priority?: 'urgent' | 'high' | 'medium' | 'low';
   dueDate?: string;
   estimateMinutes?: number;
-  userId: string;
+  spentMinutes?: number;
+  userId?: string;
   teamId?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
 }
 
 // Note types
@@ -32,11 +32,12 @@ export interface Note {
   _id: string;
   title: string;
   content: string;
+  pinned?: boolean;
   date?: string;
   userId: string;
   teamId?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
 }
 
 // Meeting types
@@ -47,34 +48,38 @@ export interface Meeting {
   date: string;
   startTime?: string;
   endTime?: string;
-  userId: string;
+  userId?: string;
   teamId?: string;
-  rrule?: string;
-  recurringId?: string;
+  rrule?: string | null;
+  recurringId?: string | null;
   isRecurringBase?: boolean;
   isRecurringInstance?: boolean;
   exceptedDates?: string[];
   linkedTaskIds?: string[];
   linkedNoteIds?: string[];
   tags?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
 }
 
-// Message types
-export interface Message {
+// Message / Chat types
+export interface ChatMessage {
   _id: string;
   text: string;
   senderName: string;
   senderId: string;
-  teamId: string;
-  linkedItemId?: string;
-  linkedItemType?: 'task' | 'note' | 'meeting';
-  createdAt: Date;
+  roomId: string;
+  teamId?: string;
+  linkedItemId?: string | null;
+  linkedItemType?: 'task' | 'note' | 'meeting' | null;
+  createdAt: string | Date;
 }
 
-// Chat Message type alias (same as Message)
-export type ChatMessage = Message;
+export interface PresenceUser {
+  userId: string;
+  name: string;
+  avatar: string | null;
+}
 
 // Agenda types
 export interface AgendaData {
@@ -83,21 +88,64 @@ export interface AgendaData {
   notes: Note[];
 }
 
+export type AgendaView = 'day' | 'week' | 'month';
+
+export interface WeekAgendaDay {
+  date: Date;
+  label: string;
+  agenda: AgendaData;
+}
+
+// Component prop types
+export interface TaskListProps {
+  tasks: Task[];
+  onDelete: (id: string) => void;
+  onEdit: (id: string, updatedTask: Partial<Task>) => void;
+  onComplete: (id: string) => void;
+  modalProps?: ModalProps;
+}
+
+export interface ModalProps {
+  isOpen: boolean;
+  openModal?: (task: Task, mode: ModalMode) => void;
+  taskToEdit: Task | null;
+  closeModal: () => void;
+  modalMode: ModalMode;
+  onSave: (updatedTask: Partial<Task>) => void;
+  defaultDueDate?: string;
+}
+
 // Search types
-export interface SearchResult {
-  _id: string;
-  title?: string;
-  text?: string;
-  type: 'task' | 'note' | 'meeting' | 'message';
+export interface SearchResultTask extends Task {
+  type: 'task';
+  snippet: string;
   score?: number;
-  snippet?: string;
+}
+
+export interface SearchResultNote extends Note {
+  type: 'note';
+  snippet: string;
+  score?: number;
+}
+
+export interface SearchResultMeeting extends Meeting {
+  type: 'meeting';
+  snippet: string;
+  score?: number;
+}
+
+export interface SearchResultMessage extends ChatMessage {
+  type: 'message';
+  snippet: string;
+  score?: number;
 }
 
 export interface SearchResults {
-  tasks?: SearchResult[];
-  notes?: SearchResult[];
-  meetings?: SearchResult[];
-  messages?: SearchResult[];
+  tasks: SearchResultTask[];
+  notes: SearchResultNote[];
+  meetings: SearchResultMeeting[];
+  messages: SearchResultMessage[];
+  total: number;
 }
 
 // API Response types
@@ -113,7 +161,7 @@ export interface ApiResponse<T> {
 }
 
 // Recurrence types
-export type RecurrenceFreq = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+export type RecurrenceFreq = 'none' | 'daily' | 'weekly' | 'monthly';
 export type RecurringEditScope = 'this' | 'following' | 'all';
 
 // Invite types

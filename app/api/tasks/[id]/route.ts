@@ -1,251 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTaskById, updateTask, deleteTask } from '@/lib/services/taskService';
-import { extractUserId } from '@/lib/auth';
+import { connectDB } from '@/lib/db';
+import { getAuthenticatedUser, respondUnauthorized } from '@/lib/auth';
+import { getTask, editTask, deleteTask } from '@/models/TaskAccessDataService';
 
-/**
- * GET /api/tasks/[id]
- * Fetch a single task by ID
- */
+// GET /api/tasks/[id]
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const taskId = params.id;
+    await connectDB();
 
-    if (!taskId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Task ID is required',
-        },
-        { status: 400 }
-      );
-    }
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
 
-    // Extract user ID from request headers
-    const userId = extractUserId(request.headers);
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized: No valid authentication token provided',
-        },
-        { status: 401 }
-      );
-    }
-
-    const task = await getTaskById(taskId, userId);
-
-    if (!task) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Task not found',
-        },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: task,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch task';
-
-    if (errorMessage.includes('Unauthorized')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: errorMessage,
-      },
-      { status: 500 }
-    );
+    const task = await getTask(params.id, user.id);
+    return NextResponse.json(task, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-/**
- * PATCH /api/tasks/[id]
- * Update a task
- * Body: Partial task fields to update (task, description, status, priority, dueDate, estimateMinutes, etc.)
- */
+// PATCH /api/tasks/[id]
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const taskId = params.id;
-    let updatedData = await request.json();
+    await connectDB();
 
-    // Support both 'title' and 'task' field names for backward compatibility
-    if (updatedData.task && !updatedData.title) {
-      updatedData.title = updatedData.task;
-    }
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
 
-    if (!taskId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Task ID is required',
-        },
-        { status: 400 }
-      );
-    }
+    const updatedData = await request.json();
+    const editedTask = await editTask(params.id, updatedData, user.id);
 
-    // Extract user ID from request headers
-    const userId = extractUserId(request.headers);
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized: No valid authentication token provided',
-        },
-        { status: 401 }
-      );
-    }
-
-    const editedTask = await updateTask(taskId, userId, updatedData);
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: editedTask,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update task';
-
-    if (errorMessage.includes('Unauthorized')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: 403 }
-      );
-    }
-
-    if (errorMessage.includes('not found')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: 404 }
-      );
-    }
-
-    if (errorMessage.includes('Invalid')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: errorMessage,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json(editedTask, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-/**
- * DELETE /api/tasks/[id]
- * Delete a task by ID
- */
+// DELETE /api/tasks/[id]
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const taskId = params.id;
+    await connectDB();
 
-    if (!taskId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Task ID is required',
-        },
-        { status: 400 }
-      );
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
+
+    if (!params.id) {
+      return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
     }
 
-    // Extract user ID from request headers
-    const userId = extractUserId(request.headers);
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized: No valid authentication token provided',
-        },
-        { status: 401 }
-      );
-    }
-
-    await deleteTask(taskId, userId);
-
+    const deletedTask = await deleteTask(params.id, user.id);
     return NextResponse.json(
       {
-        success: true,
         message: 'Task deleted successfully',
-        data: {
-          _id: taskId,
-        },
+        task: deletedTask,
       },
       { status: 200 }
     );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete task';
-
-    if (errorMessage.includes('Unauthorized')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: 403 }
-      );
-    }
-
-    if (errorMessage.includes('not found')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: errorMessage,
-        },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: errorMessage,
-      },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -18,7 +18,7 @@ const TeamPanel: React.FC<TeamPanelProps> = ({ onOpenChat }) => {
   const [inviteLink, setInviteLink] = useState('');
 
   React.useEffect(() => {
-    if (!socket) return;
+    if (!socket || typeof socket.on !== 'function') return;
 
     // Listen for online users updates
     socket.on('onlineUsers', (users) => {
@@ -38,9 +38,11 @@ const TeamPanel: React.FC<TeamPanelProps> = ({ onOpenChat }) => {
     });
 
     return () => {
-      socket.off('onlineUsers');
-      socket.off('userOnline');
-      socket.off('userOffline');
+      if (typeof socket.off === 'function') {
+        socket.off('onlineUsers');
+        socket.off('userOnline');
+        socket.off('userOffline');
+      }
     };
   }, [socket]);
 

@@ -37,7 +37,10 @@
         "./app/hooks/*"
       ],
       "@/lib/*": [
-        "./lib/*"
+        "./app/lib/*"
+      ],
+      "@/models/*": [
+        "./app/models/*"
       ],
       "@/services/*": [
         "./app/services/*"

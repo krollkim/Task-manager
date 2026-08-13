@@ -200,7 +200,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             group-hover:translate-x-1
             ${task.status === 'done' ? 'line-through text-white/35' : ''}
           `}>
-            {task.title}
+            {task.task || task.title}
           </h3>
         </div>
 

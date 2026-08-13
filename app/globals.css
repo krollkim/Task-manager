@@ -22,54 +22,175 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glass morphism utilities */
+/* ==================== PROFESSIONAL GRADIENT COLORS ==================== */
+
+/* Pro Glass Morphism — signature effect */
 .pro-glass {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.pro-card-gradient {
-  @apply bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 rounded-lg;
+/* Task Glass — subtle variant with hover */
+.task-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
+
+.task-glass:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ==================== ROUNDED CORNERS ==================== */
 
 .pro-rounded {
-  @apply rounded-lg;
+  border-radius: 16px;
 }
 
-/* Sidebar styling */
-.pro-sidebar-gradient {
-  @apply bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-r border-white/10;
+.pro-rounded-lg {
+  border-radius: 20px;
 }
+
+/* ==================== SHADOWS ==================== */
 
 .pro-shadow {
-  @apply shadow-xl shadow-black/50;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Navbar styling */
-.pro-navbar {
-  @apply bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md border-b border-white/10;
+.pro-shadow-lg {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* Task card styling */
-.task-glass {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all;
+/* ==================== GRADIENTS — THE SIGNATURE COLORS ==================== */
+
+/* Purple gradient text effect */
+.pro-text-gradient {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Modal styling */
-.modal-glass {
-  @apply bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-white/10 rounded-xl;
+/* Purple gradient buttons */
+.pro-button-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Remove scrollbar but keep functionality */
+/* Purple gradient cards — CRITICAL for restoring the look */
+.pro-card-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ==================== NAVIGATION GRADIENTS ==================== */
+
+.pro-navbar-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.pro-sidebar-gradient {
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+}
+
+/* ==================== SCROLLBARS — STYLED LOOK ==================== */
+
+.pro-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.pro-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pro-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pro-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.pro-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.pro-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.pro-slide-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* ==================== MOBILE ENHANCEMENTS ==================== */
+
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.mobile-nav-item:active::before {
+  left: 100%;
+}
+
+/* ==================== REMOVE SCROLLBAR BUT KEEP FUNCTIONALITY ==================== */
+
 .scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none;  /* IE 10+ */
+  scrollbar-width: none;     /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+  display: none;  /* Safari and Chrome */
 }
 
-/* React Modal styling — overlay above everything */
+/* ==================== REACT MODAL STYLING — PROFESSIONAL WITH BLUR ==================== */
+
 .ReactModal__Overlay {
   position: fixed !important;
   top: 0 !important;
@@ -77,17 +198,91 @@ body {
   right: 0 !important;
   bottom: 0 !important;
   z-index: 9999 !important;
-  background-color: rgba(0, 0, 0, 0.5) !important;
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  overflow: auto;
+  padding: 20px !important;
+  opacity: 0 !important;
+  transition: opacity 300ms ease-in-out !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.ReactModal__Overlay--after-open {
   opacity: 1 !important;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0 !important;
 }
 
 .ReactModal__Content {
   position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 20px !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 500px !important;
+  max-height: 90vh !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+  transform: scale(0.9) translateY(20px) !important;
+  transition: all 300ms ease-in-out !important;
+}
+
+.ReactModal__Content--after-open {
+  transform: scale(1) translateY(0) !important;
+}
+
+.ReactModal__Content--before-close {
+  transform: scale(0.9) translateY(20px) !important;
+}
+
+/* Custom scrollbar for modal content */
+.ReactModal__Content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ReactModal__Content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.ReactModal__Content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.ReactModal__Content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Mobile modal adjustments */
+@media (max-width: 640px) {
+  .ReactModal__Overlay {
+    padding: 16px !important;
+  }
+
+  .ReactModal__Content {
+    max-width: none !important;
+    width: 100% !important;
+    max-height: 85vh !important;
+  }
+}
+
+/* Material-UI Select Dropdown fixes for modal */
+.MuiPopover-root {
   z-index: 10000 !important;
-  max-height: 90vh;
-  outline: none;
+}
+
+.MuiModal-backdrop {
+  z-index: 9998 !important;
+}
+
+.MuiMenu-root .MuiPaper-root {
+  z-index: 10001 !important;
 }

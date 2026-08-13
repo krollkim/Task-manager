@@ -1,60 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, successResponse, errorResponse } from '@/lib/middleware';
-import { getAllNotes, createNote, NoteData } from '@/lib/services/noteService';
+import { connectDB } from '@/lib/db';
+import { getAuthenticatedUser, respondUnauthorized } from '@/lib/auth';
+import { getNotes, createNote } from '@/models/NoteAccessDataService';
 
-/**
- * GET /api/notes
- * Fetch all notes for the authenticated user
- * Query params: none
- * Returns: array of notes sorted by createdAt descending (newest first)
- */
+// GET /api/notes
 export async function GET(request: NextRequest) {
-  return withAuth(request, async (req: NextRequest, userId: string) => {
-    try {
-      const notes = await getAllNotes(userId);
-      return successResponse(notes, 200);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to fetch notes';
-      return errorResponse(message, 500);
-    }
-  });
+  try {
+    await connectDB();
+
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
+
+    const notes = await getNotes(user.id);
+    return NextResponse.json(notes, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
-/**
- * POST /api/notes
- * Create a new note
- * Body: { title, content?, pinned?, date?, linkedTaskId?, linkedMeetingId?, tags?, linkedMessageId? }
- * Returns: created note object
- */
+// POST /api/notes
 export async function POST(request: NextRequest) {
-  return withAuth(request, async (req: NextRequest, userId: string) => {
-    try {
-      const body = await request.json();
+  try {
+    await connectDB();
 
-      // Validate required fields
-      if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
-        return errorResponse(
-          'Note title is required and must be a non-empty string',
-          400
-        );
-      }
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
 
-      const noteData: Omit<NoteData, 'userId' | '_id'> = {
-        title: body.title.trim(),
-        content: body.content || '',
-        pinned: body.pinned ?? false,
-        ...(body.date && { date: body.date }),
-        ...(body.linkedTaskId && { linkedTaskId: body.linkedTaskId }),
-        ...(body.linkedMeetingId && { linkedMeetingId: body.linkedMeetingId }),
-        ...(body.tags && { tags: body.tags }),
-        ...(body.linkedMessageId && { linkedMessageId: body.linkedMessageId }),
-      };
+    const body = await request.json();
+    const { title, content, pinned, date } = body;
 
-      const newNote = await createNote(userId, noteData);
-      return successResponse(newNote, 201);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create note';
-      return errorResponse(message, 500);
+    if (!title || typeof title !== 'string' || title.trim() === '') {
+      return NextResponse.json(
+        { error: 'Note title is required and must be a non-empty string.' },
+        { status: 400 }
+      );
     }
-  });
+
+    const noteData = {
+      title: title.trim(),
+      content: content || '',
+      pinned: pinned || false,
+      userId: user.id,
+      ...(date && { date }),
+    };
+
+    const newNote = await createNote(noteData);
+    return NextResponse.json(newNote, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

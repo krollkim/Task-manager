@@ -1,39 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { clearAuthCookie } from '@/lib/auth';
 
-interface LogoutResponse {
-  success: boolean
-  error?: string
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse<LogoutResponse>> {
+export async function POST(request: NextRequest) {
   try {
-    // Verify the request has valid content (optional)
-    // In a typical logout, we just need to clear the cookie
-
-    // Create response
     const response = NextResponse.json(
-      {
-        success: true,
-      },
+      { msg: 'Logged out successfully' },
       { status: 200 }
-    )
+    );
 
-    // Clear the auth token cookie
-    response.cookies.set('auth-token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 0, // Delete immediately
-      path: '/',
-    })
-
-    return response
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Logout failed'
+    await clearAuthCookie(response);
+    return response;
+  } catch (error: any) {
+    console.error('Logout error:', error);
     return NextResponse.json(
-      { success: false, error: message },
+      { error: error.message || 'Server error' },
       { status: 500 }
-    )
+    );
   }
 }
-

@@ -1,109 +1,55 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAllTasks, createTask } from '@/lib/services/taskService';
-import { extractUserId } from '@/lib/auth';
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/db';
+import { getAuthenticatedUser, respondUnauthorized } from '@/lib/auth';
+import Task from '@/models/mongoDB/Task';
+import { getTasks, createTask, getTask, deleteTask, editTask } from '@/models/TaskAccessDataService';
 
-/**
- * GET /api/tasks
- * Fetch all tasks for the authenticated user
- */
+// GET /api/tasks
 export async function GET(request: NextRequest) {
   try {
-    // Extract user ID from request headers
-    const userId = extractUserId(request.headers);
+    await connectDB();
 
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized: No valid authentication token provided',
-        },
-        { status: 401 }
-      );
-    }
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
 
-    const tasks = await getAllTasks(userId);
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: tasks,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch tasks',
-      },
-      { status: 500 }
-    );
+    const tasks = await getTasks(user.id);
+    return NextResponse.json(tasks, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-/**
- * POST /api/tasks
- * Create a new task
- * Body: { title: string, description?: string, status?: string, priority?: string, dueDate?: string, estimateMinutes?: number }
- */
+// POST /api/tasks
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
+    const user = await getAuthenticatedUser(request);
+    if (!user) return respondUnauthorized();
+
     const body = await request.json();
+    const { task, description, status, priority, dueDate, estimateMinutes } = body;
 
-    // Support both 'title' and 'task' field names for backward compatibility
-    const taskTitle = body.title || body.task;
-
-    // Validate required fields
-    if (!taskTitle || typeof taskTitle !== 'string' || taskTitle.trim() === '') {
+    if (!task || typeof task !== 'string' || task.trim() === '') {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Title is required and must be a non-empty string.',
-        },
+        { error: 'Task is required and must be a non-empty string.' },
         { status: 400 }
       );
     }
 
-    // Extract user ID from request headers
-    const userId = extractUserId(request.headers);
+    const taskData = {
+      task: task.trim(),
+      description: description || '',
+      status: status || 'todo',
+      priority: priority || 'medium',
+      userId: user.id,
+      ...(dueDate && { dueDate }),
+      ...(estimateMinutes !== undefined && { estimateMinutes }),
+    };
 
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized: No valid authentication token provided',
-        },
-        { status: 401 }
-      );
-    }
-
-    const newTask = await createTask(userId, {
-      title: taskTitle.trim(),
-      description: body.description || '',
-      status: body.status || 'todo',
-      priority: body.priority || 'medium',
-      ...(body.dueDate && { dueDate: body.dueDate }),
-      ...(body.estimateMinutes !== undefined && { estimateMinutes: body.estimateMinutes }),
-      ...(body.linkedMeetingId && { linkedMeetingId: body.linkedMeetingId }),
-      ...(body.linkedNoteIds && { linkedNoteIds: body.linkedNoteIds }),
-      ...(body.tags && { tags: body.tags }),
-      ...(body.teamId && { teamId: body.teamId }),
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: newTask,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create task',
-      },
-      { status: 500 }
-    );
+    const newTask = await createTask(taskData);
+    return NextResponse.json(newTask, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
