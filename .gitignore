@@ -36,9 +36,8 @@ lerna-debug.log*
 # Environment variables
 .env
 .env.local
-.env.development
 .env.production
-.env.test
+.env*.local
 *.env
 config.bat
 
@@ -63,10 +62,9 @@ build/
 .eslintcache
 
 # Security: Prevent credential exposure
-.env.local
-.env.production
 .env.*.local
 docs/*AUDIT.md
 docs/*CREDENTIAL*.md
 docs/*SECRET*.md
 server/config/default.json
+
